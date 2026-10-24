@@ -1,0 +1,15 @@
+{
+  "name": "codex-bili-dragon",
+  "version": "0.1.0",
+  "description": "Codex 本地 B 站伙伴：阅读、作息、双日记与受控互动。",
+  "author": { "name": "Cansiny0320" },
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json",
+  "interface": {
+    "displayName": "B 站小白龙",
+    "shortDescription": "在 B 站探索、写日记，按你的规则互动",
+    "developerName": "Cansiny0320",
+    "category": "Productivity",
+    "defaultPrompt": "让小白龙按我的兴趣看看 B 站，写下今天的两本日记。"
+  }
+}

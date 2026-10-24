@@ -1,0 +1,15 @@
+node_modules/
+data/
+dist/
+work/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+credentials.json
+auth.json
+config.local.json
+cookies*.txt
+.DS_Store

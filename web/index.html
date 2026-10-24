@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>小白龙 · B 站生活手记</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#"
+        ><span class="mark">龙</span
+        ><span>小白龙<small>CODEX BILI DRAGON</small></span></a
+      ><span class="local">● 只在本机运行</span>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <span class="eyebrow">一点好奇，一点自己的生活</span>
+          <h1>今天，也去发现些有趣的事。</h1>
+          <p>按自己的作息逛逛 B 站，把见闻写给你，也留一点给自己。</p>
+        </div>
+        <div class="actions">
+          <button id="run" class="primary">现在逛一会儿</button
+          ><button id="pause">暂停活动</button>
+        </div>
+      </section>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <section class="overview">
+        <div><span>活动状态</span><strong id="state">连接中</strong></div>
+        <div><span>下一次活动</span><strong id="next">—</strong></div>
+        <div><span>B 站账号</span><strong id="account">未配置</strong></div>
+        <div><span>等待你审核</span><strong id="draftCount">0</strong></div>
+      </section>
+      <nav aria-label="管理栏目">
+        <button class="tab active" data-tab="diaries">生活手记</button
+        ><button class="tab" data-tab="drafts">消息与草稿</button
+        ><button class="tab" data-tab="settings">人设与作息</button
+        ><button class="tab" data-tab="account">账号与连接</button
+        ><button class="tab" data-tab="jobs">运行记录</button>
+      </nav>
+      <section id="diaries" class="panel">
+        <div class="section-heading">
+          <h2>把今天留下来</h2>
+          <span>两本日记都只保存在本机</span>
+        </div>
+        <div class="diary-columns">
+          <section>
+            <h3 id="publicTitle">给你的信</h3>
+            <div id="publicDiary" class="stack"></div>
+          </section>
+          <section>
+            <h3>自己的小本子</h3>
+            <div id="privateDiary" class="stack"></div>
+          </section>
+        </div>
+      </section>
+      <section id="drafts" class="panel" hidden>
+        <h2>有些话，先给你看看</h2>
+        <p>陌生人的回复需要你审核。发送前仍会检查对应通道是否开启。</p>
+        <div id="draftList" class="stack"></div>
+        <h3>最近收到的消息</h3>
+        <div id="inboxList" class="stack"></div>
+      </section>
+      <section id="settings" class="panel" hidden>
+        <form id="settingsForm">
+          <div class="section-heading">
+            <h2>小白龙的日常</h2>
+            <button type="submit" class="primary">保存设置</button>
+          </div>
+          <div class="settings-grid">
+            <fieldset>
+              <legend>我是谁</legend>
+              <label>名字<input name="persona.name" maxlength="100" /></label>
+              <div class="pair">
+                <label>称呼你<input name="persona.ownerTitle" /></label
+                ><label>自称<input name="persona.selfClaim" /></label>
+              </div>
+              <label>给你的日记标题<input name="persona.diaryTitle" /></label
+              ><label
+                >性格与说话方式<textarea
+                  name="persona.body"
+                  rows="5"
+                ></textarea></label
+              ><label
+                >喜欢的内容（每行一项）<textarea
+                  name="preferences.like"
+                  rows="3"
+                ></textarea></label
+              ><label
+                >不喜欢的内容（每行一项）<textarea
+                  name="preferences.dislike"
+                  rows="3"
+                ></textarea>
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>作息与活动</legend>
+              <label class="check"
+                ><input
+                  type="checkbox"
+                  name="enabled"
+                />开启自主活动与消息监听</label
+              ><label
+                >时区<input
+                  name="timezone"
+                  placeholder="Asia/Shanghai" /></label
+              ><label
+                >活动时段（每行：开始时间 结束时间 次数）<textarea
+                  name="night.windows"
+                  rows="3"
+                  placeholder="20:00 24:00 1"
+                ></textarea>
+              </label>
+              <div class="pair">
+                <label
+                  >跳过概率（0～1）<input
+                    type="number"
+                    name="night.skipChance"
+                    min="0"
+                    max="1"
+                    step="0.1" /></label
+                ><label
+                  >最小间隔（分钟）<input
+                    type="number"
+                    name="night.minGapMin"
+                    min="10"
+                    max="1440"
+                /></label>
+              </div>
+              <label
+                >每次最多看几个视频<input
+                  type="number"
+                  name="night.maxVideos"
+                  min="1"
+                  max="10" /></label
+              ><label
+                >Codex 模型（留空使用当前默认）<input
+                  name="model"
+                  placeholder="使用 Codex 当前默认模型"
+              /></label>
+              <p class="hint">
+                需要后台持续运行和有效的 Codex 登录；关闭电脑后不会继续活动。
+              </p>
+            </fieldset>
+            <fieldset>
+              <legend>互动与分享</legend>
+              <div class="pair">
+                <label
+                  >主人 B 站 UID<input
+                    name="owner.mid"
+                    inputmode="numeric" /></label
+                ><label>主人 B 站昵称<input name="owner.name" /></label>
+              </div>
+              <label class="check"
+                ><input
+                  type="checkbox"
+                  name="permissions.comments"
+                />允许发送评论</label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  name="permissions.dm"
+                />允许给主人发送私信（需要互关）</label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  name="permissions.live"
+                />允许发送直播弹幕</label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  name="share.enabled"
+                />允许主动分享值得看的视频</label
+              >
+              <div class="pair">
+                <label
+                  >分享方式<select name="share.via">
+                    <option value="comment">视频评论 @ 主人</option>
+                    <option value="dm">私信给主人</option>
+                  </select></label
+                ><label
+                  >每天分享上限<input
+                    type="number"
+                    name="quota.shareDaily"
+                    min="0"
+                    max="3"
+                /></label>
+              </div>
+              <div class="pair">
+                <label
+                  >最低评分（0～20）<input
+                    type="number"
+                    name="share.minScore"
+                    min="0"
+                    max="20" /></label
+                ><label
+                  >沉默衰减天数<input
+                    type="number"
+                    name="share.silentAfterDays"
+                    min="1"
+                    max="30"
+                /></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>听到有人找我</legend>
+              <label class="check"
+                ><input type="checkbox" name="listen.comment" />监听评论与
+                @</label
+              ><label class="check"
+                ><input type="checkbox" name="listen.dm" />监听主人的私信</label
+              ><label class="check"
+                ><input type="checkbox" name="listen.live" />监听直播间</label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  name="listen.allDay"
+                />在作息时段之外也监听</label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  name="listen.oncePerPerson"
+                />陌生人只回复一次</label
+              >
+              <div class="pair">
+                <label
+                  >评论轮询（秒）<input
+                    type="number"
+                    name="listen.commentIntervalSec"
+                    min="60"
+                    max="3600" /></label
+                ><label
+                  >私信轮询（秒）<input
+                    type="number"
+                    name="listen.dmIntervalSec"
+                    min="60"
+                    max="3600"
+                /></label>
+              </div>
+              <label
+                >直播间房间号<input
+                  name="listen.liveRoom"
+                  inputmode="numeric" /></label
+              ><label
+                >直播间关注对象<select name="listen.liveScope">
+                  <option value="owner">主人</option>
+                  <option value="mention">@ 小白龙的人</option>
+                </select></label
+              >
+              <p class="hint">
+                监听和发送权限分别控制。第一次启用评论监听会跳过已有消息。
+              </p>
+            </fieldset>
+          </div>
+        </form>
+      </section>
+      <section id="account" class="panel" hidden>
+        <h2>让小白龙认得自己的账号</h2>
+        <p>
+          使用你有权操作的 B
+          站账号。凭据只写入本机数据目录，不会回显到页面或传给模型。
+        </p>
+        <form id="credentialsForm" class="credential-form">
+          <label
+            >SESSDATA<input
+              type="password"
+              name="sessdata"
+              autocomplete="off"
+              required /></label
+          ><label
+            >bili_jct<input
+              type="password"
+              name="bili_jct"
+              autocomplete="off"
+              required /></label
+          ><label
+            >buvid3<input
+              type="password"
+              name="buvid3"
+              autocomplete="off"
+              required
+          /></label>
+          <div class="actions">
+            <button class="primary" type="submit">保存账号凭据</button
+            ><button id="checkLogin" type="button">检查 B 站登录</button>
+          </div>
+        </form>
+        <pre id="loginResult"></pre>
+        <h3>Codex 连接</h3>
+        <p>
+          使用官方 Codex 客户端已有的登录，不需要把 OpenAI
+          密钥或登录令牌粘贴到这里。可先运行
+          <code>npm run doctor</code> 检查兼容性。
+        </p>
+      </section>
+      <section id="jobs" class="panel" hidden>
+        <h2>活动足迹</h2>
+        <p>“待核查”表示上次结果无法确认，不会自动重试。请检查后关闭记录。</p>
+        <div id="jobList" class="stack"></div>
+        <h3>消息监听状态</h3>
+        <pre id="listenerStatus"></pre>
+        <h3>发送记录</h3>
+        <div id="operationList" class="stack"></div>
+      </section>
+    </main>
+    <footer>Codex Bili Dragon · 从 dsh-bili-whale 延续而来的好奇心</footer>
+  </body>
+</html>

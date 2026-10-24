@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "codex-bili-dragon",
+  "version": "0.1.0",
+  "description": "A local Bilibili companion for Codex, with reading tools, daily rhythms, two diaries, and reviewed replies.",
+  "author": { "name": "Cansiny0320" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "B 站小白龙",
+        "shortDescription": "在 B 站探索、写日记，按你的规则互动",
+        "longDescription": "为 Codex 提供本地 B 站阅读、字幕、热评和抽帧工具，配合作息后台与消息审核。",
+        "developerName": "Cansiny0320",
+        "category": "Productivity",
+        "defaultPrompt": "让小白龙按我的兴趣看看 B 站，写下今天的两本日记。"
+      }
+    }
+  }
+}

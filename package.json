@@ -1,0 +1,48 @@
+{
+  "name": "codex-bili-dragon",
+  "version": "0.1.0",
+  "description": "Codex Bili Dragon — a local Bilibili companion with a daily rhythm, diaries and reviewed interactions",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node bin/dragon.mjs start",
+    "mcp": "node server.mjs",
+    "doctor": "node bin/dragon.mjs doctor",
+    "test": "node --test test/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "package": "node scripts/package.mjs",
+    "doctor:protocol": "node bin/dragon.mjs doctor --protocol",
+    "format": "prettier --write src test scripts bin web server.mjs package.json plugin.json mcp.json .codex-plugin/plugin.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "luxon": "3.7.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  },
+  "files": [
+    "bin",
+    "src",
+    "scripts",
+    "server.mjs",
+    "web",
+    "skills",
+    "plugin.json",
+    "mcp.json",
+    ".codex-plugin",
+    "vendor/upstream",
+    "docs/usage.md",
+    "docs/verification.md",
+    "docs/images",
+    "README.md",
+    "UPSTREAM.md",
+    "LICENSE",
+    "test"
+  ]
+}
