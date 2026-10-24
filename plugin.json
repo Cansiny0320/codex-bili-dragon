@@ -1,9 +1,11 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "codex-bili-dragon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A local Bilibili companion for Codex, with reading tools, daily rhythms, two diaries, and reviewed replies.",
-  "author": { "name": "Cansiny0320" },
+  "author": {
+    "name": "Cansiny0320"
+  },
   "extensions": {
     "com.openai": {
       "interface": {

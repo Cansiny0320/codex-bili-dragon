@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 // Exit contract: 0 = message/ack/baseline; 1 + {hit:false} = normal empty; 2 = invalid input; 3 = failure.
 import fs from 'node:fs'
 import path from 'node:path'

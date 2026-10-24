@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // 复核一条评论到底有没有"公开"出去。三层：
 //   [a] 视频页 HTML（服务端状态，匿名）

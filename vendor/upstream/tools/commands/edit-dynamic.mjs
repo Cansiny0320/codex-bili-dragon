@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // 编辑已存在的动态：POST /x/dynamic/feed/edit/dyn（端点从网页 JS 里扒出来的）
 //   "/x/dynamic/feed/" + (dyn_id_str ? "edit" : "create") + "/dyn"

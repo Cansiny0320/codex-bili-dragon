@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 // comment-await.mjs —— 评论版"叫我起床"（跟直播间 danmaku-await 同一套路）
 //
 // 为什么这么设计：agent 收不到"被动事件"，但**后台任务结束会通知 agent** ✓

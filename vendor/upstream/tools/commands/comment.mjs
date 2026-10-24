@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { decision, notifyOnce } from '../lib/ai-share.mjs'
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // Post ONE bilibili comment on the user's behalf. Explicitly single-shot.

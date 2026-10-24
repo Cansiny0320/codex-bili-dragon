@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // Post ONE image dynamic. Does not delete anything — the caller decides.
 //

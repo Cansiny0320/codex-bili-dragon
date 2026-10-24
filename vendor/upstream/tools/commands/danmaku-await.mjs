@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // "叫我起床"式监听：只在出现**该回的弹幕**时退出，把消息交给 agent（我）去回。
 // 与 danmaku-auto.mjs 的区别：它不发弹幕，只负责"发现 → 退出 → 让 agent 接手"。

@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { cacheComments } from '../lib/ai-share.mjs'
 import { apiGet } from '../lib/bili-api.mjs'
 // 拉一条视频的热评 / 最新评论（只读）——「看完的人怎么看」那一路，从 debrief 里拆出来单用。
@@ -95,6 +95,9 @@ if (AS_JSON) {
     bvid,
     aid,
     title: String(d.title ?? ''),
+    cover: String(d.pic ?? ''),
+    author: String(d.owner?.name ?? ''),
+    duration: Number(d.duration ?? 0),
     total: Number(rep.data?.page?.count ?? d.stat?.reply ?? 0),
     sort: SORT === 2 ? 'hot' : 'time',
     page: PN,

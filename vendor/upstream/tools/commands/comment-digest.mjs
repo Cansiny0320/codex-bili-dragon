@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 // comment-digest.mjs —— "今天谁找过人家"：给主人的日终汇报（只读，一句都不回）
 //
 // 用途：她过完一天（或主人睡前）时跑一遍，把结果推给主人看 ——

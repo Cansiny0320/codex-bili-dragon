@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // 抓取若干视频的元信息 + 封面（供 agent 看图），封面存到 covers/<BV>.jpg
 //   node fetch-covers.mjs BV1xxx BV2yyy ...

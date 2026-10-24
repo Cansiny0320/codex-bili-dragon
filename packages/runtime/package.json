@@ -1,0 +1,21 @@
+{
+  "name": "@bili-dragon/runtime",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/service.ts",
+    "./api": "./src/api.ts",
+    "./types": "./src/types.ts",
+    "./config": "./src/config.ts"
+  },
+  "scripts": {
+    "build": "vp pack"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@orpc/server": "1.16.1",
+    "luxon": "3.7.2",
+    "zod": "4.6.7"
+  }
+}

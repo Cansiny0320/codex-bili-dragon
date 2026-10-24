@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 import { guardedFetch as fetch } from '../lib/traffic.mjs'
 // 私信（专属通道）—— 2026-10-18 主人定：**三条写死在代码里**
 //   ① **一天只锁定 1 个收信人**（防刷量；对同一个人发多少条不限 ✓）

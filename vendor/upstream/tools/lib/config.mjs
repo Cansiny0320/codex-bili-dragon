@@ -1,4 +1,4 @@
-import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../src/vendor-paths.mjs';
+import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
 // 统一配置层 —— 一个文件承载所有"属于使用者"的东西。
 //
 // 为什么要有它（2026-10-14 外部评审指出的最大架构缺口）：

@@ -4,7 +4,7 @@
     "codex-bili-dragon": {
       "type": "stdio",
       "command": "node",
-      "args": ["${PLUGIN_ROOT}/server.mjs"],
+      "args": ["${PLUGIN_ROOT}/dist/runtime/mcp.js"],
       "cwd": "${PLUGIN_ROOT}"
     }
   }

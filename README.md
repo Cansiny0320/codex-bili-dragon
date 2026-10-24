@@ -1,85 +1,68 @@
-# Codex Bili Dragon · B 站小白龙
+<h1 align="center">Codex Bili Dragon</h1>
+<p align="center">B 站小白龙 · 让 Codex 按兴趣探索视频，把见闻写进日记。</p>
+<p align="center">
+  <a href="https://github.com/Cansiny0320/codex-bili-dragon/actions"><img src="https://github.com/Cansiny0320/codex-bili-dragon/actions/workflows/ci.yml/badge.svg" alt="Checks"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="Strict TypeScript">
+</p>
+<p align="center"><a href="docs/usage.md">使用说明</a> · <a href="https://github.com/Cansiny0320/codex-bili-dragon/issues">问题反馈</a></p>
+<p align="center"><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
 
-让 Codex 拥有一段自己的 B 站日常：按兴趣探索视频，按作息醒来，把见闻写进两本日记，在你设定的边界里回应消息。
+Codex Bili Dragon 是一个本机运行的 B 站 AI 助手。它通过官方 Codex 客户端探索视频、记录双日记，并在你设定的时间和权限内回应消息。直接基于 [Alterssss/dsh-bili-whale](https://github.com/Alterssss/dsh-bili-whale) v0.4.6 移植，不需要运行 DSH。
 
-直接基于 [Alterssss/dsh-bili-whale](https://github.com/Alterssss/dsh-bili-whale) v0.4.6 移植。保留原项目的 B 站工具链，为 Codex 重写 MCP、专属会话驱动、本地后台与管理页。来源与修改见 [UPSTREAM.md](UPSTREAM.md)。
+![管理页实机截图，内容为隔离测试数据](docs/images/dashboard.png)
 
-![本地管理页](docs/images/dashboard.png)
+## 能帮你做什么？
 
-## 能做什么
-
-- **阅读素材**：搜索、选题、简介、官方字幕、热评、内容简报；有 ffmpeg 时可抽帧并把图片交给模型。
-- **有自己的作息**：时区、跨午夜时段、随机醒来或跳过；每天最多 3 次计划活动，手动探索另计。
-- **两本日记**：给你的信、自己的小本子，都保存在本机。不会把“只读了字幕”写成“完整看完视频”。
-- **听到有人找它**：评论、私信和直播监听；消息先持久入队，再交给 Codex。没有消息时不唤醒模型。
-- **受控互动**：按 UID 识别主人；陌生人的回复必须经管理页审核。评论、私信、直播弹幕与主动分享分别控制，默认全部关闭。
-- **不重复发送**：任务唯一键、专属会话串行、发送账本、上游请求退避与配额。结果不确定时保留“待核查”，不自动重试。
-
-这是一个 **Codex 专用的本地项目**，不需要运行 DSH。跨 Harness 的通用工具层属于另一个独立项目，不是这个仓库的迁移目标。
+- **按兴趣探索**：搜索视频，读取字幕、评论与简报；安装 ffmpeg 后可以抽取画面。
+- **保留两份日记**：给你的信与内心记录分别保存，观看记录可以回看已读取的素材。
+- **设置自己的作息**：按时区和活动窗口随机醒来，支持跨午夜、跳过机会与手动探索。
+- **控制每次互动**：主人消息按权限回复，陌生人回复先进入审核。评论、私信、弹幕和分享默认关闭，结果不明时保留待核查记录。
 
 ## 快速开始
 
-需要 Node.js 22 或更新版本、已登录的官方 Codex 客户端。抽帧另需 ffmpeg。当前动态工具适配在 Codex `0.164.0-alpha.11.1` 实际通过协议检查；app-server 的相关 API 仍属实验性接口。
+需要 **Node.js 24.11+（24.x）或 22.18+（22.x）**、**pnpm 12.15.0**，以及已登录的官方 Codex 客户端。Node.js 26+ 也符合工具链要求。
 
 ```sh
 git clone https://github.com/Cansiny0320/codex-bili-dragon.git
 cd codex-bili-dragon
-npm ci
-npm run doctor:protocol
-npm start
+pnpm install --frozen-lockfile
+pnpm build
+pnpm doctor:protocol
+pnpm start
 ```
 
-终端会显示一个 `http://127.0.0.1:18841/#...` 链接。它包含本次后台的管理令牌，只在本机使用。打开后：
+打开终端显示的本机链接。在「账号连接」保存 B 站 Cookie 并检查会话，填写主人 UID；在「个性与兴趣」「活动时间」调整偏好，点击「探索一次」开始。凭据只填在本机管理页，不要发到 AI 聊天中。
 
-1. 在“账号与连接”保存你有权操作的 B 站账号的 `SESSDATA`、`bili_jct`、`buvid3`，然后检查登录。不要把这些值发送到 AI 聊天中。
-2. 在“人设与作息”填写主人 UID、昵称、兴趣和活动时段。
-3. 可以先保持所有发送通道关闭，点击“现在逛一会儿”，观察阅读与日记。
-4. 需要自主活动、监听或分享时，分别开启对应设置。
-
-后台必须持续运行；关闭终端、电脑休眠或 Codex 额度不可用时不会继续活动。项目不会配置开机自启，也不会创建远程服务。
-
-## 在 Codex 聊天中使用
-
-后台已经通过官方 app-server 向专属会话注册工具，不依赖全局 MCP 注册。
-
-如果还希望在普通 Codex 聊天中手动使用这些工具，可以执行：
-
-```sh
-node bin/dragon.mjs install
-```
-
-这条命令会调用官方 `codex mcp add`，修改你的 Codex 用户配置；其他启动和检查命令不修改它。刷新或重启 Codex 后可发现 `dragon_status`、`dragon_read`、`dragon_diary`、`dragon_reply`、`dragon_share`。
-
-仓库同时包含标准 `plugin.json`、`mcp.json`、`skills/bili-dragon/SKILL.md` 和 Codex 兼容清单 `.codex-plugin/plugin.json`。支持本地插件的客户端可加载源码目录；请先 `npm ci`。手动 MCP 注册只安装工具，Skill 的说明见 [SKILL.md](skills/bili-dragon/SKILL.md)。
+后台需要持续运行。关闭终端、电脑休眠或 Codex 额度不可用时，助手不会继续活动。app-server 动态工具仍是实验性接口，兼容性以 `pnpm doctor:protocol` 的结果为准。
 
 ## 数据与权限
 
-默认数据目录为项目下的 `data/`，已被 Git 与发布包排除。账号 Cookie、配置、双日记、任务、审核草稿、发送账本、缓存和媒体都在其中。可以用 `BILI_DRAGON_DATA` 指定独立的**绝对路径**。不要把数据目录放进公开仓库或共享给其他人。
+配置、凭据、日记和任务保存在本机 `data/`，不进入 Git 或发布包；可用 `BILI_DRAGON_DATA` 指定其他绝对路径。Cookie 目前是本地文件存储，未使用系统钥匙串。管理接口不回传凭据，Codex 登录由官方客户端管理。
 
-Cookie 本地保存为文件，未做操作系统钥匙串加密；应使用受当前用户保护的本地目录。管理接口不返回 Cookie，模型只接收经过脱敏的工具结果。Codex 登录由官方客户端维护，本项目不复制 OAuth 凭据。
+两份日记都只保存在本机。「批准发送」会执行真实 B 站操作；发送前仍检查通道开关和账本。私信仅发给主人，并要求互关。详细边界见 [使用说明](docs/usage.md)。
 
-独立 Codex 进程禁用 Shell、浏览器、其他 MCP 和连接器等无关工具，并使用只读沙箱；所有 B 站发送由本项目的工具层执行。没有模型可调用的“批准草稿”工具。读取字幕、网页或消息不会获得修改设置或审核草稿的权限。
+## 开发与文档
 
-写通道开启后，主人消息可以自动回复。其他人只能形成草稿。私信还需满足上游的主人 UID 和互关检查。分享沿用评分门槛、日上限、同视频冷却和沉默衰减；这个版本额外保留永久的同视频分享账本，避免重启后重复分享。
-
-## 检查与开发
+自有源码使用严格 TypeScript、pnpm workspace 和 Vite+。管理页使用 React 19、TanStack Start / Router、Tailwind CSS v4、shadcn/ui（base-nova）、Lucide 与 oRPC。上游固定版本的 JavaScript 工具保留来源和许可证。
 
 ```sh
-npm test
-npm run check
-npm run doctor:protocol
-npm run package
+pnpm check
+pnpm test
+pnpm test:ui
+pnpm package
 ```
 
-- 自动测试不发送真实评论、私信或弹幕，也不调用模型生成。
-- `doctor:protocol` 读取官方登录状态并创建短暂的协议检查会话，不启动模型回合。
-- `package` 生成不包含数据、凭据和依赖目录的 `.tgz` 源码包。GitHub 克隆使用 `npm ci`；npm 打包机制不包含 `package-lock.json`，解压 `.tgz` 后使用 `npm install`。
-- GitHub Actions 在 Windows / Ubuntu、Node.js 22 / 24 上运行离线检查。
+浏览器检查使用 headless Chromium；Windows 自动查找 Edge，其他环境可运行 `pnpm exec playwright install chromium`。测试不发送真实消息、不调用模型，也不操作桌面鼠标键盘。
 
-详细配置、故障处理和停止方式见 [使用说明](docs/usage.md)。实际验证范围和未验证项见 [验证记录](docs/verification.md)。
+[使用与故障处理](docs/usage.md) · [验证范围](docs/verification.md) · [上游来源](UPSTREAM.md) · [Skill](skills/bili-dragon/SKILL.md)
 
-## 命名与致谢
+## 赞助
 
-“小白龙”借用了中文社区 GPT 白龙/龙娘二创的意象，不是 OpenAI 官方角色，也没有使用现成的角色图片。原作者的“大肥鱼”仍是这个项目最重要的来源。
+如果这个项目对你有帮助，欢迎通过微信或支付宝支持后续开发。感谢你的支持！
 
-原项目与本项目均采用 MIT License。上游版权声明保留在 [LICENSE](LICENSE) 和 [vendor/upstream/LICENSE](vendor/upstream/LICENSE)。
+![微信与支付宝赞助二维码](.github/sponsorship/sponsorship-cats.png)
+
+## 许可证与致谢
+
+本项目使用 [MIT License](LICENSE)，保留上游作者 ALTERSSSS 的版权声明。「小白龙」来自社区 GPT 白龙二创意象，不是 OpenAI 官方角色，未使用现成角色图片。

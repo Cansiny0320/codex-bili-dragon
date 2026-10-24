@@ -1,0 +1,83 @@
+import type { ReactNode } from 'react';
+import { Link, useRouterState } from '@tanstack/react-router';
+import {
+  House,
+  PlayCircle,
+  NotebookText,
+  SquareCheck,
+  Heart,
+  Clock,
+  ShieldCheck,
+  Link2,
+  Menu,
+  X,
+  AlertCircle,
+} from 'lucide-react';
+import { useState } from 'react';
+import { useDashboard } from '../lib/state';
+const items = [
+  ['/', '首页', House],
+  ['/videos', '观看记录', PlayCircle],
+  ['/diary', '日记', NotebookText],
+  ['/review', '待我审核', SquareCheck],
+  ['/personality', '个性与兴趣', Heart],
+  ['/schedule', '活动时间', Clock],
+  ['/permissions', '操作权限', ShieldCheck],
+  ['/account', '账号连接', Link2],
+] as const;
+export function Shell({ children }: { children: ReactNode }) {
+  const { state, error, notice, clearError } = useDashboard();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState(false);
+  const count = state?.drafts.filter((d) => d.state === 'draft').length ?? 0;
+  return (
+    <div className="app-shell">
+      <header className="mobile-header">
+        <button aria-label="打开导航" onClick={() => setOpen(!open)}>
+          <Menu />
+        </button>
+        <strong>Codex Bili Dragon</strong>
+      </header>
+      <aside className={'sidebar ' + (open ? 'is-open' : '')}>
+        <div className="brand">
+          <strong>Codex Bili Dragon</strong>
+          <span>B 站小白龙</span>
+        </div>
+        <nav aria-label="主导航">
+          {items.map(([to, label, Icon]) => (
+            <Link
+              key={to}
+              to={to}
+              className={'nav-item ' + (pathname === to ? 'active' : '')}
+              onClick={() => setOpen(false)}
+            >
+              <Icon strokeWidth={1.7} />
+              <span>{label}</span>
+              {to === '/review' && count > 0 && <b className="count-badge">{count}</b>}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+      {open && (
+        <button className="nav-backdrop" aria-label="关闭导航" onClick={() => setOpen(false)} />
+      )}
+      <main className="main-content">
+        {error && (
+          <div className="error-banner" role="alert">
+            <AlertCircle size={20} />
+            <span>{error}</span>
+            <button aria-label="关闭提示" onClick={clearError}>
+              <X size={18} />
+            </button>
+          </div>
+        )}
+        {notice && (
+          <div className="save-notice" role="status">
+            {notice}
+          </div>
+        )}
+        {children}
+      </main>
+    </div>
+  );
+}

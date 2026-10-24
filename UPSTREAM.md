@@ -8,9 +8,10 @@
 
 ## Local changes
 
-The original tools are vendored under vendor/upstream/tools. DSH host lifecycle, web UI, scheduler integration and session delivery were replaced with the Codex implementation in src/ and web/.
+The original tools are vendored under vendor/upstream/tools. DSH host lifecycle, web UI, scheduler integration and session delivery were replaced with the Codex implementation in packages/runtime/src/ and apps/dashboard/.
 
-- Tool state paths now resolve only inside BILI_DRAGON_DATA via src/vendor-paths.mjs; no HOME, USERPROFILE or DSH_HOME reassignment.
+- Tool state paths now resolve only inside BILI_DRAGON_DATA via dist/runtime/vendor-paths.js; no HOME, USERPROFILE or DSH_HOME reassignment.
+- The comments JSON response includes title, cover, author and duration from the already-fetched video metadata; it adds no new request.
 - guardedFetch enforces our live channel switch and endpoint allowlist for every write.
 - Live-listener handoff persists a pending JSON event before advancing its cursor and replays it until our durable queue acknowledges it. Poll sleep respects the requested deadline.
 - Existing upstream comments and historical names remain where useful for auditing. Only the structured tool catalog is exposed to models; not every upstream CLI command is exposed.

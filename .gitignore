@@ -13,3 +13,6 @@ auth.json
 config.local.json
 cookies*.txt
 .DS_Store
+
+.tanstack/
+.vite/

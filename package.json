@@ -1,48 +1,57 @@
 {
   "name": "codex-bili-dragon",
-  "version": "0.1.0",
-  "description": "Codex Bili Dragon — a local Bilibili companion with a daily rhythm, diaries and reviewed interactions",
-  "type": "module",
+  "version": "0.2.0",
   "private": true,
+  "description": "Codex Bili Dragon — a local Bilibili companion with a daily rhythm, diaries and reviewed interactions",
   "license": "MIT",
-  "engines": {
-    "node": ">=22"
-  },
-  "scripts": {
-    "start": "node bin/dragon.mjs start",
-    "mcp": "node server.mjs",
-    "doctor": "node bin/dragon.mjs doctor",
-    "test": "node --test test/*.test.mjs",
-    "check": "node scripts/check.mjs",
-    "package": "node scripts/package.mjs",
-    "doctor:protocol": "node bin/dragon.mjs doctor --protocol",
-    "format": "prettier --write src test scripts bin web server.mjs package.json plugin.json mcp.json .codex-plugin/plugin.json"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.2",
-    "luxon": "3.7.2",
-    "zod": "4.6.7"
-  },
-  "devDependencies": {
-    "prettier": "3.9.10"
-  },
   "files": [
-    "bin",
-    "src",
-    "scripts",
-    "server.mjs",
-    "web",
+    "dist/runtime",
+    "dist/dashboard",
+    "vendor/upstream",
     "skills",
     "plugin.json",
     "mcp.json",
     ".codex-plugin",
-    "vendor/upstream",
-    "docs/usage.md",
-    "docs/verification.md",
-    "docs/images",
     "README.md",
-    "UPSTREAM.md",
+    "README.en.md",
     "LICENSE",
-    "test"
-  ]
+    "UPSTREAM.md",
+    "docs/usage.md",
+    ".github/sponsorship",
+    "docs/images",
+    "docs/verification.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "start": "node dist/runtime/cli.js start",
+    "mcp": "node dist/runtime/mcp.js",
+    "doctor": "node dist/runtime/cli.js doctor",
+    "doctor:protocol": "node dist/runtime/cli.js doctor --protocol",
+    "build": "vp run --filter \"@bili-dragon/*\" build",
+    "check": "vp check && node scripts/check.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vp test run",
+    "format": "vp fmt",
+    "package": "node --experimental-strip-types scripts/package.ts",
+    "test:ui": "vp test run --config scripts/ui.vite.config.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@orpc/server": "1.16.1",
+    "luxon": "3.7.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/luxon": "3.7.6",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "playwright": "1.64.1",
+    "typescript": "7.0.2",
+    "vite-plus": "1.4.0"
+  },
+  "engines": {
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+  },
+  "packageManager": "pnpm@12.15.0"
 }

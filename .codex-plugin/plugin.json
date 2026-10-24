@@ -1,8 +1,10 @@
 {
   "name": "codex-bili-dragon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Codex 本地 B 站伙伴：阅读、作息、双日记与受控互动。",
-  "author": { "name": "Cansiny0320" },
+  "author": {
+    "name": "Cansiny0320"
+  },
   "skills": "./skills/",
   "mcpServers": "./mcp.json",
   "interface": {
