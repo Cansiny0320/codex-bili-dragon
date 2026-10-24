@@ -8,16 +8,16 @@
 <p align="center"><a href="docs/usage.md">Usage guide</a> · <a href="https://github.com/Cansiny0320/codex-bili-dragon/issues">Issues</a></p>
 <p align="center"><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
 
-Codex Bili Dragon runs locally and uses the official Codex client to explore Bilibili videos, keep two diaries, and respond to messages within your schedule and permissions. It is a direct port of [Alterssss/dsh-bili-whale](https://github.com/Alterssss/dsh-bili-whale) v0.4.6 and does not require DSH.
+Codex Bili Dragon runs locally and uses the official Codex client to explore Bilibili videos, write letters to you and private reflections, and respond to messages within your schedule and permissions. It is a direct port of [Alterssss/dsh-bili-whale](https://github.com/Alterssss/dsh-bili-whale) v0.4.6 and does not require DSH.
 
-![Actual dashboard screenshot with isolated test data](docs/images/dashboard.png)
+![Dashboard with demo data](docs/images/dashboard.png)
 
 ## What can it do?
 
 - **Explore your interests**: search videos and read subtitles, comments and briefs; sample frames when ffmpeg is available.
-- **Keep two diaries**: a letter to you and private reflections, with saved reading material in the viewing history.
-- **Follow a schedule**: time zones, overnight windows, random wakeups or skips, and manual exploration.
-- **Review interactions**: owner replies follow your permissions; replies to other people require review. Comments, DMs, live messages and sharing are off by default. Uncertain results remain pending investigation.
+- **Record what it finds**: letters to you and private reflections are saved separately, alongside a history of the video material it has read.
+- **Set activity times**: choose a time zone and schedule, including overnight activity, or start an exploration yourself.
+- **Review interactions**: owner replies follow your permissions; replies to other people require review. Comments, DMs, live messages and sharing are off by default. If a send result is unclear, it keeps a record for you to check.
 
 ## Getting started
 
@@ -40,11 +40,11 @@ The background process must stay running. Closing the terminal, suspending the c
 
 Settings, credentials, diaries and jobs stay in the local `data/` directory, excluded from Git and packages. Set `BILI_DRAGON_DATA` to use another absolute path. Cookies are stored in local files without OS keychain encryption. Management responses do not return saved secrets; the official client manages Codex authentication.
 
-Both diaries stay local. Approving a draft performs a real Bilibili action after checking the channel switch and send ledger. DMs target only the configured owner and require mutual following. See the [usage guide](docs/usage.md) for details.
+Both diaries stay local. Approving a draft performs a real Bilibili action after checking that sending is enabled and the reply has not already been sent. DMs target only the configured owner and require mutual following. See the [usage guide](docs/usage.md) for details.
 
 ## Development and documentation
 
-The project uses strict TypeScript, a pnpm workspace and Vite+. The dashboard uses React 19, TanStack Start / Router, Tailwind CSS v4, shadcn/ui (base-nova), Lucide and oRPC. The pinned upstream JavaScript tools retain their provenance and license.
+Built with TypeScript, with a dashboard based on React and TanStack Start. The pinned upstream JavaScript tools retain their provenance and license.
 
 ```sh
 pnpm check
@@ -66,3 +66,8 @@ If this project is useful to you, you can support its development through WeChat
 ## License and acknowledgements
 
 Released under the [MIT License](LICENSE), with ALTERSSSS's upstream copyright retained. The white dragon name draws on community GPT fan art; it is not an official OpenAI character, and no existing character artwork is used.
+
+## Related projects
+
+- [bili-agent-kit](https://github.com/Cansiny0320/bili-agent-kit): Bilibili SDK, CLI and MCP tools for other AI assistants and applications.
+- [dsh-bili-whale-dashboard](https://github.com/Cansiny0320/dsh-bili-whale-dashboard): a dashboard for the original DSH Bili Whale plugin, running separately from this project.

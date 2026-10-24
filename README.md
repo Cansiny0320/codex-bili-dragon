@@ -8,16 +8,16 @@
 <p align="center"><a href="docs/usage.md">使用说明</a> · <a href="https://github.com/Cansiny0320/codex-bili-dragon/issues">问题反馈</a></p>
 <p align="center"><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
 
-Codex Bili Dragon 是一个本机运行的 B 站 AI 助手。它通过官方 Codex 客户端探索视频、记录双日记，并在你设定的时间和权限内回应消息。直接基于 [Alterssss/dsh-bili-whale](https://github.com/Alterssss/dsh-bili-whale) v0.4.6 移植，不需要运行 DSH。
+Codex Bili Dragon 是一个本机运行的 B 站 AI 助手。它通过官方 Codex 客户端探索视频、写下给你的信和内心记录，并在你设定的时间和权限内回应消息。直接基于 [Alterssss/dsh-bili-whale](https://github.com/Alterssss/dsh-bili-whale) v0.4.6 移植，不需要运行 DSH。
 
-![管理页实机截图，内容为隔离测试数据](docs/images/dashboard.png)
+![管理页截图，内容为演示数据](docs/images/dashboard.png)
 
 ## 能帮你做什么？
 
 - **按兴趣探索**：搜索视频，读取字幕、评论与简报；安装 ffmpeg 后可以抽取画面。
-- **保留两份日记**：给你的信与内心记录分别保存，观看记录可以回看已读取的素材。
-- **设置自己的作息**：按时区和活动窗口随机醒来，支持跨午夜、跳过机会与手动探索。
-- **控制每次互动**：主人消息按权限回复，陌生人回复先进入审核。评论、私信、弹幕和分享默认关闭，结果不明时保留待核查记录。
+- **记录见闻**：把给你的信和内心记录分开保存，也可以回看之前读过的视频素材。
+- **安排活动时间**：设置时区和作息，允许跨午夜活动，也可以随时手动探索一次。
+- **控制每次互动**：主人消息按权限回复，陌生人回复先进入审核。评论、私信、弹幕和分享默认关闭，发送结果不明确时保留记录，供你核查。
 
 ## 快速开始
 
@@ -40,11 +40,11 @@ pnpm start
 
 配置、凭据、日记和任务保存在本机 `data/`，不进入 Git 或发布包；可用 `BILI_DRAGON_DATA` 指定其他绝对路径。Cookie 目前是本地文件存储，未使用系统钥匙串。管理接口不回传凭据，Codex 登录由官方客户端管理。
 
-两份日记都只保存在本机。「批准发送」会执行真实 B 站操作；发送前仍检查通道开关和账本。私信仅发给主人，并要求互关。详细边界见 [使用说明](docs/usage.md)。
+两份日记都只保存在本机。「批准发送」会执行真实 B 站操作；发送前会检查对应功能是否开启，以及是否已经发送过。私信仅发给主人，并要求互关。详细边界见 [使用说明](docs/usage.md)。
 
 ## 开发与文档
 
-自有源码使用严格 TypeScript、pnpm workspace 和 Vite+。管理页使用 React 19、TanStack Start / Router、Tailwind CSS v4、shadcn/ui（base-nova）、Lucide 与 oRPC。上游固定版本的 JavaScript 工具保留来源和许可证。
+项目使用 TypeScript，管理页基于 React 和 TanStack Start。上游固定版本的 JavaScript 工具保留来源和许可证。
 
 ```sh
 pnpm check
@@ -66,3 +66,8 @@ pnpm package
 ## 许可证与致谢
 
 本项目使用 [MIT License](LICENSE)，保留上游作者 ALTERSSSS 的版权声明。「小白龙」来自社区 GPT 白龙二创意象，不是 OpenAI 官方角色，未使用现成角色图片。
+
+## 相关项目
+
+- [bili-agent-kit](https://github.com/Cansiny0320/bili-agent-kit)：B 站 SDK、CLI 和 MCP 工具，适合接入其他 AI 助手或自己的程序。
+- [dsh-bili-whale-dashboard](https://github.com/Cansiny0320/dsh-bili-whale-dashboard)：给 DSH 原版养鱼插件配套的管理后台，与本项目分别运行。
