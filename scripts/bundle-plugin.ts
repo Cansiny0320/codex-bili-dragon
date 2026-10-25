@@ -42,6 +42,15 @@ export function bundlePlugin(source: string) {
   const pkg = JSON.parse(
     fs.readFileSync(path.join(project, 'package.json'), 'utf8'),
   ) as PackageInfo;
+  const update = JSON.parse(
+    fs.readFileSync(path.join(project, 'dist/runtime/update.json'), 'utf8'),
+  ) as { schema: number; version: string };
+  if (
+    update.schema !== 1 ||
+    update.version !== pkg.version ||
+    !fs.existsSync(path.join(project, 'dist/runtime/update-runner.js'))
+  )
+    throw Error('更新兼容清单缺失或版本不符，请重新运行 pnpm build');
   const includes = [
     'dist/runtime',
     'dist/dashboard',

@@ -5,6 +5,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { z } from 'zod';
 import { root, dataRoot, version } from './paths.js';
 import { errorCode } from './types.js';
+import { activeRoot, readTransition } from './update-state.js';
+import { compatible, newer, readManifest, verifyPackage } from './update-package.js';
 
 const connectionSchema = z.object({
   origin: z.string().regex(/^http:\/\/127\.0\.0\.1:\d+$/),
@@ -67,17 +69,33 @@ export async function findRuntime(dir = dataRoot): Promise<RuntimeConnection | n
 }
 
 export async function ensureRuntime(dir = dataRoot): Promise<RuntimeConnection> {
+  for (let attempt = 0; readTransition(dir); attempt++) {
+    const transition = readTransition(dir)!;
+    if (attempt >= 600 || Date.now() - transition.startedAt > 180000)
+      throw Error('后台更新尚未完成，请核查 server.log；未重复提交请求');
+    await delay(100);
+  }
   const current = await findRuntime(dir);
   if (current) {
-    if (current.version !== version)
+    if (current.version !== version && !compatible(readManifest(root), readManifest(current.root)))
       throw Error('后台版本已变化，请先停止后台，再重新启动。数据会保留。');
     return current;
   }
+  const selected = activeRoot(dir, root);
+  const selectedManifest = readManifest(selected);
+  const directory =
+    selected !== root &&
+    selectedManifest &&
+    newer(selectedManifest.version, version) &&
+    compatible(readManifest(root), selectedManifest)
+      ? selected
+      : root;
+  if (directory !== root) verifyPackage(directory, selectedManifest!.version);
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const log = fs.openSync(path.join(dir, 'server.log'), 'a', 0o600);
-  const child = spawn(process.execPath, [path.join(root, 'dist/runtime/worker.js')], {
-    cwd: root,
-    env: { ...process.env, BILI_DRAGON_DATA: dir },
+  const child = spawn(process.execPath, [path.join(directory, 'dist/runtime/worker.js')], {
+    cwd: directory,
+    env: { ...process.env, BILI_DRAGON_DATA: dir, BILI_DRAGON_UPDATE_TOKEN: '' },
     detached: true,
     windowsHide: true,
     stdio: ['ignore', log, log],

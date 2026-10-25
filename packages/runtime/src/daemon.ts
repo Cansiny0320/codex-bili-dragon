@@ -14,6 +14,7 @@ export class Daemon {
   session: SessionRunner;
   listeners: Listeners;
   busy = false;
+  draining = false;
   stopped = true;
   release: (() => void) | null = null;
   timer?: ReturnType<typeof setInterval>;
@@ -43,8 +44,11 @@ export class Daemon {
       }),
     );
   }
+  get idleForUpdate() {
+    return !this.busy && this.listeners.active.size === 0 && this.service.controllers.size === 0;
+  }
   async tick(now = Date.now()) {
-    if (this.stopped) return;
+    if (this.stopped || this.draining) return;
     const c = this.service.config();
     if (c.enabled) {
       this.listeners.suspended = false;

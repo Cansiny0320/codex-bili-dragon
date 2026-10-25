@@ -1,5 +1,5 @@
 import { n as dataRoot } from "./paths-5G6hh4eK.js";
-import { n as findFfmpeg } from "./ffmpeg-DG17ZPhF.js";
+import { n as findFfmpeg } from "./ffmpeg-MQ-tQqLl.js";
 import path from "node:path";
 // src/vendor-paths.ts
 const home = dataRoot;

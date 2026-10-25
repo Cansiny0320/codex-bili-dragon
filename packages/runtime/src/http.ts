@@ -15,7 +15,22 @@ type Render = (request: Request) => Promise<Response>;
 export async function createHttp(
   service: DragonService,
   daemon: DaemonControl,
-  { port = 18841, render, stop }: { port?: number; render?: Render; stop?: () => void } = {},
+  {
+    port = 18841,
+    render,
+    stop,
+    updateControl,
+  }: {
+    port?: number;
+    render?: Render;
+    stop?: () => void;
+    updateControl?: {
+      token: string;
+      activate: () => void;
+      shutdown: () => void;
+      held: () => boolean;
+    };
+  } = {},
 ) {
   const token = crypto.randomBytes(32).toString('base64url');
   const actions = createActions(service, daemon);
@@ -24,6 +39,8 @@ export async function createHttp(
   });
   let origin = '';
   let renderApp = render;
+  let quiescing = !!updateControl;
+  let requests = 0;
   const send = (
     res: ServerResponse,
     status: number,
@@ -57,7 +74,12 @@ export async function createHttp(
           return;
         }
         if (req.method === 'GET' && url.pathname === '/api/runtime') {
-          send(res, 200, { pid: process.pid, version, protocol: 1 });
+          send(res, 200, {
+            pid: process.pid,
+            version,
+            protocol: 1,
+            held: updateControl?.held() ?? false,
+          });
           return;
         }
         if (req.method !== 'POST') {
@@ -75,94 +97,128 @@ export async function createHttp(
           send(res, 413, { error: '请求过大' });
           return;
         }
-        if (url.pathname.startsWith('/rpc/')) {
-          const { matched } = await handler.handle(req, res, { prefix: '/rpc' });
-          if (!matched) send(res, 404, { error: '接口不存在' });
+        if (url.pathname === '/api/update-activate' || url.pathname === '/api/update-shutdown') {
+          if (
+            !updateControl ||
+            req.headers['x-update-token'] !== updateControl.token ||
+            !updateControl.held()
+          ) {
+            send(res, 403, { error: '无效更新会话' });
+            return;
+          }
+          if (url.pathname === '/api/update-activate') updateControl.activate();
+          else updateControl.shutdown();
+          send(res, 200, { ok: true });
           return;
         }
-        let body = '';
-        for await (const chunk of req) {
-          body += chunk;
-          if (Buffer.byteLength(body) > 128 * 1024) {
-            send(res, 413, { error: '请求过大' });
+        if (quiescing) {
+          send(res, 503, {
+            error: '后台正在切换，请稍后重新打开管理页；发送结果不明时请先核查记录。',
+          });
+          return;
+        }
+        requests++;
+        let counted = true;
+        const finish = () => {
+          if (counted) {
+            counted = false;
+            requests--;
+          }
+        };
+        // Count until the handler has completed, even when the client disconnects mid-write.
+        res.once('finish', finish);
+        try {
+          if (url.pathname.startsWith('/rpc/')) {
+            const { matched } = await handler.handle(req, res, { prefix: '/rpc' });
+            if (!matched) send(res, 404, { error: '接口不存在' });
             return;
           }
-        }
-        const data: unknown = JSON.parse(body || '{}');
-        const id =
-          typeof data === 'object' && data !== null && 'id' in data && typeof data.id === 'string'
-            ? data.id
-            : '';
-        let result: unknown;
-        switch (url.pathname) {
-          case '/api/activity':
-            result = actions.activity(data);
-            break;
-          case '/api/material':
-            result = actions.material(data);
-            break;
-          case '/api/tool': {
-            const input = data as { name?: unknown; arguments?: unknown };
-            const tool = catalog(service).find((item) => item.name === input?.name);
-            if (!tool) throw Error('未知工具');
-            result = await tool.call(input.arguments ?? {});
-            break;
+          let body = '';
+          for await (const chunk of req) {
+            body += chunk;
+            if (Buffer.byteLength(body) > 128 * 1024) {
+              send(res, 413, { error: '请求过大' });
+              return;
+            }
           }
-          case '/api/stop':
-            if (!stop) throw Error('请通过启动终端停止此前台实例');
-            await actions.pause();
-            result = { stopping: true };
-            stop();
-            break;
-          case '/api/config':
-            result = await actions.config(data);
-            break;
-          case '/api/credentials':
-            result = await actions.credentials(data);
-            break;
-          case '/api/login-start':
-            result = await actions.loginStart();
-            break;
-          case '/api/login-poll':
-          case '/api/login-cancel': {
-            const handle =
-              typeof data === 'object' &&
-              data !== null &&
-              'handle' in data &&
-              typeof data.handle === 'string'
-                ? data.handle
-                : '';
-            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle))
-              throw Error('无效登录会话');
-            result =
-              url.pathname === '/api/login-poll'
-                ? await actions.loginPoll(handle)
-                : actions.loginCancel(handle);
-            break;
+          const data: unknown = JSON.parse(body || '{}');
+          const id =
+            typeof data === 'object' && data !== null && 'id' in data && typeof data.id === 'string'
+              ? data.id
+              : '';
+          let result: unknown;
+          switch (url.pathname) {
+            case '/api/activity':
+              result = actions.activity(data);
+              break;
+            case '/api/material':
+              result = actions.material(data);
+              break;
+            case '/api/tool': {
+              const input = data as { name?: unknown; arguments?: unknown };
+              const tool = catalog(service).find((item) => item.name === input?.name);
+              if (!tool) throw Error('未知工具');
+              result = await tool.call(input.arguments ?? {});
+              break;
+            }
+            case '/api/stop':
+              if (!stop) throw Error('请通过启动终端停止此前台实例');
+              await actions.pause();
+              result = { stopping: true };
+              stop();
+              break;
+            case '/api/config':
+              result = await actions.config(data);
+              break;
+            case '/api/credentials':
+              result = await actions.credentials(data);
+              break;
+            case '/api/login-start':
+              result = await actions.loginStart();
+              break;
+            case '/api/login-poll':
+            case '/api/login-cancel': {
+              const handle =
+                typeof data === 'object' &&
+                data !== null &&
+                'handle' in data &&
+                typeof data.handle === 'string'
+                  ? data.handle
+                  : '';
+              if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle))
+                throw Error('无效登录会话');
+              result =
+                url.pathname === '/api/login-poll'
+                  ? await actions.loginPoll(handle)
+                  : actions.loginCancel(handle);
+              break;
+            }
+            case '/api/check-login':
+              result = await actions.checkLogin();
+              break;
+            case '/api/run':
+              result = actions.run();
+              break;
+            case '/api/pause':
+              result = await actions.pause();
+              break;
+            case '/api/approve':
+              result = await actions.approve(id);
+              break;
+            case '/api/reject':
+              result = actions.reject(id);
+              break;
+            case '/api/dismiss':
+              result = actions.dismiss(id);
+              break;
+            default:
+              send(res, 404, { error: '接口不存在' });
+              return;
           }
-          case '/api/check-login':
-            result = await actions.checkLogin();
-            break;
-          case '/api/run':
-            result = actions.run();
-            break;
-          case '/api/pause':
-            result = await actions.pause();
-            break;
-          case '/api/approve':
-            result = await actions.approve(id);
-            break;
-          case '/api/reject':
-            result = actions.reject(id);
-            break;
-          case '/api/dismiss':
-            result = actions.dismiss(id);
-            break;
-          default:
-            send(res, 404, { error: '接口不存在' });
-            return;
+          send(res, 200, result ?? { ok: true });
+        } finally {
+          finish();
         }
-        send(res, 200, result ?? { ok: true });
         return;
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -228,6 +284,10 @@ export async function createHttp(
     token,
     url: origin + '/#' + token,
     server,
+    busy: () => requests > 0,
+    gate: (closed: boolean) => {
+      quiescing = closed;
+    },
     close: () => {
       service.login.dispose();
       return new Promise<void>((resolve, reject) =>

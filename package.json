@@ -1,6 +1,6 @@
 {
   "name": "codex-bili-dragon",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Codex Bili Dragon — a local Bilibili companion with a daily rhythm, diaries and reviewed interactions",
   "license": "MIT",
@@ -10,7 +10,7 @@
     "mcp": "node dist/runtime/mcp.js",
     "doctor": "node dist/runtime/cli.js doctor",
     "doctor:protocol": "node dist/runtime/cli.js doctor --protocol",
-    "build": "vp run --filter \"@bili-dragon/*\" build",
+    "build": "vp run --filter \"@bili-dragon/*\" build && node scripts/update-manifest.ts",
     "check": "vp check && node scripts/check.ts",
     "typecheck": "tsc --noEmit",
     "test": "vp test run",

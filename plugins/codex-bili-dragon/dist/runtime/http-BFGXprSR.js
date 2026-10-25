@@ -1,6 +1,8 @@
-import { c as materialInput, d as credentialsSchema, f as redact, g as errorMessage, h as exclusive, l as materialView, s as catalog, u as activityInput } from "./runtime-mPQ0hftG.js";
+import { a as activityInput, i as materialView, n as catalog, o as credentialsSchema, r as materialInput, s as redact } from "./service-Bs_eI39T.js";
+import { g as exclusive, p as updateState, v as errorMessage } from "./runtime-BQhNtnnM.js";
 import { a as version, r as root } from "./paths-5G6hh4eK.js";
-import { E as string, O as unknown, S as object, T as record, c as taskPrompt, l as DateTime, o as baseInstructions, r as configSchema, s as developerInstructions, y as literal } from "./policy-umMXvVui.js";
+import { _ as string, g as record, p as object, u as literal, y as unknown } from "./schemas-BWrad36H.js";
+import { c as taskPrompt, l as DateTime, o as baseInstructions, r as configSchema, s as developerInstructions } from "./policy-DjEN7pXP.js";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { execFileSync, spawn } from "node:child_process";
@@ -661,6 +663,7 @@ var Daemon = class {
 	session;
 	listeners;
 	busy = false;
+	draining = false;
 	stopped = true;
 	release = null;
 	timer;
@@ -688,8 +691,11 @@ var Daemon = class {
 			lastErrorAt: (/* @__PURE__ */ new Date()).toISOString()
 		}));
 	}
+	get idleForUpdate() {
+		return !this.busy && this.listeners.active.size === 0 && this.service.controllers.size === 0;
+	}
 	async tick(now = Date.now()) {
-		if (this.stopped) return;
+		if (this.stopped || this.draining) return;
 		const c = this.service.config();
 		if (c.enabled) {
 			this.listeners.suspended = false;
@@ -3205,6 +3211,11 @@ function createActions(service, daemon) {
 		state: () => ({
 			...service.status(),
 			config: service.config(),
+			updates: {
+				...updateState(service.store.dir),
+				runtimeVersion: version,
+				supported: service.updatesSupported
+			},
 			evidence: service.store.read("evidence", {}),
 			listeners: service.store.read("listener-status", {}),
 			schedule: service.store.read("schedule", {})
@@ -3267,12 +3278,14 @@ function createApi(service, daemon) {
 	};
 }
 // src/http.ts
-async function createHttp(service, daemon, { port = 18841, render, stop } = {}) {
+async function createHttp(service, daemon, { port = 18841, render, stop, updateControl } = {}) {
 	const token = crypto.randomBytes(32).toString("base64url");
 	const actions = createActions(service, daemon);
 	const handler = new RPCHandler(createApi(service, daemon), { plugins: [new BodyLimitPlugin({ maxBodySize: 131072 })] });
 	let origin = "";
 	let renderApp = render;
+	let quiescing = !!updateControl;
+	let requests = 0;
 	const send = (res, status, value, type = "application/json; charset=utf-8") => {
 		res.writeHead(status, {
 			"content-type": type,
@@ -3303,7 +3316,8 @@ async function createHttp(service, daemon, { port = 18841, render, stop } = {}) 
 					send(res, 200, {
 						pid: process.pid,
 						version,
-						protocol: 1
+						protocol: 1,
+						held: updateControl?.held() ?? false
 					});
 					return;
 				}
@@ -3319,81 +3333,108 @@ async function createHttp(service, daemon, { port = 18841, render, stop } = {}) 
 					send(res, 413, { error: "请求过大" });
 					return;
 				}
-				if (url.pathname.startsWith("/rpc/")) {
-					const { matched } = await handler.handle(req, res, { prefix: "/rpc" });
-					if (!matched) send(res, 404, { error: "接口不存在" });
+				if (url.pathname === "/api/update-activate" || url.pathname === "/api/update-shutdown") {
+					if (!updateControl || req.headers["x-update-token"] !== updateControl.token || !updateControl.held()) {
+						send(res, 403, { error: "无效更新会话" });
+						return;
+					}
+					if (url.pathname === "/api/update-activate") updateControl.activate();
+					else updateControl.shutdown();
+					send(res, 200, { ok: true });
 					return;
 				}
-				let body = "";
-				for await (const chunk of req) {
-					body += chunk;
-					if (Buffer.byteLength(body) > 131072) {
-						send(res, 413, { error: "请求过大" });
+				if (quiescing) {
+					send(res, 503, { error: "后台正在切换，请稍后重新打开管理页；发送结果不明时请先核查记录。" });
+					return;
+				}
+				requests++;
+				let counted = true;
+				const finish = () => {
+					if (counted) {
+						counted = false;
+						requests--;
+					}
+				};
+				res.once("finish", finish);
+				try {
+					if (url.pathname.startsWith("/rpc/")) {
+						const { matched } = await handler.handle(req, res, { prefix: "/rpc" });
+						if (!matched) send(res, 404, { error: "接口不存在" });
 						return;
 					}
-				}
-				const data = JSON.parse(body || "{}");
-				const id = typeof data === "object" && data !== null && "id" in data && typeof data.id === "string" ? data.id : "";
-				let result;
-				switch (url.pathname) {
-					case "/api/activity":
-						result = actions.activity(data);
-						break;
-					case "/api/material":
-						result = actions.material(data);
-						break;
-					case "/api/tool": {
-						const input = data;
-						const tool = catalog(service).find((item) => item.name === input?.name);
-						if (!tool) throw Error("未知工具");
-						result = await tool.call(input.arguments ?? {});
-						break;
+					let body = "";
+					for await (const chunk of req) {
+						body += chunk;
+						if (Buffer.byteLength(body) > 131072) {
+							send(res, 413, { error: "请求过大" });
+							return;
+						}
 					}
-					case "/api/stop":
-						if (!stop) throw Error("请通过启动终端停止此前台实例");
-						await actions.pause();
-						result = { stopping: true };
-						stop();
-						break;
-					case "/api/config":
-						result = await actions.config(data);
-						break;
-					case "/api/credentials":
-						result = await actions.credentials(data);
-						break;
-					case "/api/login-start":
-						result = await actions.loginStart();
-						break;
-					case "/api/login-poll":
-					case "/api/login-cancel": {
-						const handle = typeof data === "object" && data !== null && "handle" in data && typeof data.handle === "string" ? data.handle : "";
-						if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle)) throw Error("无效登录会话");
-						result = url.pathname === "/api/login-poll" ? await actions.loginPoll(handle) : actions.loginCancel(handle);
-						break;
+					const data = JSON.parse(body || "{}");
+					const id = typeof data === "object" && data !== null && "id" in data && typeof data.id === "string" ? data.id : "";
+					let result;
+					switch (url.pathname) {
+						case "/api/activity":
+							result = actions.activity(data);
+							break;
+						case "/api/material":
+							result = actions.material(data);
+							break;
+						case "/api/tool": {
+							const input = data;
+							const tool = catalog(service).find((item) => item.name === input?.name);
+							if (!tool) throw Error("未知工具");
+							result = await tool.call(input.arguments ?? {});
+							break;
+						}
+						case "/api/stop":
+							if (!stop) throw Error("请通过启动终端停止此前台实例");
+							await actions.pause();
+							result = { stopping: true };
+							stop();
+							break;
+						case "/api/config":
+							result = await actions.config(data);
+							break;
+						case "/api/credentials":
+							result = await actions.credentials(data);
+							break;
+						case "/api/login-start":
+							result = await actions.loginStart();
+							break;
+						case "/api/login-poll":
+						case "/api/login-cancel": {
+							const handle = typeof data === "object" && data !== null && "handle" in data && typeof data.handle === "string" ? data.handle : "";
+							if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle)) throw Error("无效登录会话");
+							result = url.pathname === "/api/login-poll" ? await actions.loginPoll(handle) : actions.loginCancel(handle);
+							break;
+						}
+						case "/api/check-login":
+							result = await actions.checkLogin();
+							break;
+						case "/api/run":
+							result = actions.run();
+							break;
+						case "/api/pause":
+							result = await actions.pause();
+							break;
+						case "/api/approve":
+							result = await actions.approve(id);
+							break;
+						case "/api/reject":
+							result = actions.reject(id);
+							break;
+						case "/api/dismiss":
+							result = actions.dismiss(id);
+							break;
+						default:
+							send(res, 404, { error: "接口不存在" });
+							return;
 					}
-					case "/api/check-login":
-						result = await actions.checkLogin();
-						break;
-					case "/api/run":
-						result = actions.run();
-						break;
-					case "/api/pause":
-						result = await actions.pause();
-						break;
-					case "/api/approve":
-						result = await actions.approve(id);
-						break;
-					case "/api/reject":
-						result = actions.reject(id);
-						break;
-					case "/api/dismiss":
-						result = actions.dismiss(id);
-						break;
-					default:
-						send(res, 404, { error: "接口不存在" });
-						return;
+					send(res, 200, result ?? { ok: true });
+				} finally {
+					finish();
 				}
-				send(res, 200, result ?? { ok: true });
 				return;
 			}
 			if (req.method !== "GET" && req.method !== "HEAD") {
@@ -3451,6 +3492,10 @@ async function createHttp(service, daemon, { port = 18841, render, stop } = {}) 
 		token,
 		url: origin + "/#" + token,
 		server,
+		busy: () => requests > 0,
+		gate: (closed) => {
+			quiescing = closed;
+		},
 		close: () => {
 			service.login.dispose();
 			return new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
@@ -3459,4 +3504,4 @@ async function createHttp(service, daemon, { port = 18841, render, stop } = {}) 
 }
 export { connectCodex as a, threadResponse as c, configResponse as i, Daemon as n, findCodex as o, accountResponse as r, isolatedConfig as s, createHttp as t };
 
-//# sourceMappingURL=http-CVoFMgmJ.js.map
+//# sourceMappingURL=http-BFGXprSR.js.map

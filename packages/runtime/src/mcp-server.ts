@@ -13,13 +13,7 @@ import { z } from 'zod';
 import { catalog } from './service.js';
 import { configSchema } from './config.js';
 import { root, dataRoot, version } from './paths.js';
-import {
-  ensureRuntime,
-  findRuntime,
-  requestRuntime,
-  stopRuntime,
-  type RuntimeConnection,
-} from './runtime.js';
+import { ensureRuntime, findRuntime, requestRuntime, stopRuntime } from './runtime.js';
 import { errorMessage } from './types.js';
 import { redact } from './upstream.js';
 import { credentialsSchema } from './login.js';
@@ -72,16 +66,16 @@ const icons = [
 ];
 
 export function createDragonMcp(dir = dataRoot) {
-  let connection: RuntimeConnection | undefined;
   let stopped = false;
   const start = async () => {
-    connection = await ensureRuntime(dir);
+    const connection = await ensureRuntime(dir);
     stopped = false;
     return connection;
   };
   const call = async <T = unknown>(action: string, input?: unknown): Promise<T> => {
     if (stopped) throw Error('后台已停止，请让 Codex 启动小白龙，或重新打开管理页。');
-    return requestRuntime<T>(connection ?? (await start()), action, input);
+    // Resolve before sending; never replay a request whose outcome may be unknown.
+    return requestRuntime<T>(await start(), action, input);
   };
   const forward = (name: string, args: unknown) =>
     call<CallToolResult>('tool', { name, arguments: args });
@@ -164,7 +158,10 @@ export function createDragonMcp(dir = dataRoot) {
         {
           uri: appUri,
           mimeType: 'text/html;profile=mcp-app',
-          text: fs.readFileSync(path.join(root, 'dist/mcp-app/index.html'), 'utf8'),
+          text: fs.readFileSync(
+            path.join((await ensureRuntime(dir)).root, 'dist/mcp-app/index.html'),
+            'utf8',
+          ),
           _meta: {
             ui: { csp: { resourceDomains: ['https://*.hdslb.com'], connectDomains: [] } },
             'openai/ui': {
@@ -198,7 +195,6 @@ export function createDragonMcp(dir = dataRoot) {
         } else if (action === 'stop') {
           result = await stopRuntime(dir);
           stopped = true;
-          connection = undefined;
         } else result = await call('pause');
         return { content: [{ type: 'text', text: JSON.stringify(result) }] };
       }

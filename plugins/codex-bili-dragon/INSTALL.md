@@ -36,10 +36,14 @@
 
 ## 更新与卸载
 
-- 更新：先通过 `dragon_control` 的 `stop` 或 CLI `stop` 停止后台。GitHub 市场安装的版本先执行 `codex plugin marketplace upgrade bili-dragon`，再在插件页面升级；ZIP 安装的版本下载并验证新包，再执行安装流程。升级后重新加载插件并检查版本。日记、账号和设置独立于插件缓存保存。
+- 自动更新：首次手动安装 0.9.0 或更新版本并重新加载插件后，可在「账号连接 → 高级设置」开启「自动更新小白龙」并保存。默认关闭；共享后台启动时和每六小时检查官方稳定版，验证 ZIP、SHA-256 和逐文件清单后，在当前任务完成时切换。更新保持活动、权限和个性设置，失败回退程序，不回退日记与发送台账。前台 `serve` 开发模式不自动切换。
+- 兼容边界：工具接口、桥接代码或数据合同改变时，会提示「需要重新加载插件」，请按下方手动更新步骤操作。后台兼容更新不会修改 Codex 的市场安装记录，所以管理页的后台版本可能比插件列表更新；已打开的旧页面需要重新打开才能加载新页面。
+- 手动更新：先通过 `dragon_control` 的 `stop` 或 CLI `stop` 停止后台。GitHub 市场安装的版本先执行 `codex plugin marketplace upgrade bili-dragon`，再在插件页面升级；ZIP 安装的版本下载并验证新包，再执行安装流程。升级后重新加载插件并检查版本。日记、账号和设置独立于插件缓存保存。
 - 卸载：先停止后台，再执行 `codex plugin remove codex-bili-dragon@bili-dragon`。需要移除插件源时再执行 `codex plugin marketplace remove bili-dragon`。这些操作保留个人数据；清除数据需要用户另行明确要求。
 - 安装器不创建开机启动项或系统服务。关闭管理页后已启动的后台会继续运行；电脑休眠或关机会中断活动，恢复后需检查状态。
 
 ## 本地开发验证
 
 开发者先执行 `pnpm build` 和 `pnpm package`，从 `dist/plugin` 执行安装命令。普通用户使用预构建 ZIP，无需 pnpm、npm install 或编译。
+
+构建会生成 `dist/runtime/update.json` 兼容清单；打包时必须保留。修改持久化数据的含义或读取方式且旧程序无法安全读取时，提升 `scripts/update-manifest.ts` 中的 `dataContract`，禁止自动切换。更新版本保存在数据目录的 `updates/versions`，不会覆盖正在运行的插件文件，也不会自动删除旧版本。

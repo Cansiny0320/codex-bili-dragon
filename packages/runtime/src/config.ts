@@ -8,6 +8,10 @@ const text = z.string().max(2000),
 export const configSchema = z
   .object({
     enabled: z.boolean().default(false),
+    updates: z
+      .object({ enabled: z.boolean().default(false) })
+      .strict()
+      .prefault({}),
     // Older configurations are resolved after the login identity is verified.
     accountMode: z.enum(['single', 'dual']).optional(),
     timezone: z

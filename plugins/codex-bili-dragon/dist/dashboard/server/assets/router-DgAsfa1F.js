@@ -1440,31 +1440,31 @@ var Route$9 = createRootRoute({
 	})
 });
 // src/routes/index.tsx
-var $$splitComponentImporter$8 = () => import("./routes-7hRrLklc.js");
+var $$splitComponentImporter$8 = () => import("./routes-Bhzc3MNp.js");
 var Route$8 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$8, "component") });
 // src/routes/account.tsx
-var $$splitComponentImporter$7 = () => import("./account-BSRrPWpV.js");
+var $$splitComponentImporter$7 = () => import("./account-7eeFur9I.js");
 var Route$7 = createFileRoute("/account")({ component: lazyRouteComponent($$splitComponentImporter$7, "component") });
 // src/routes/activity.tsx
 var $$splitComponentImporter$6 = () => import("./activity-BJ8YZdBO.js");
 var Route$6 = createFileRoute("/activity")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
 // src/routes/diary.tsx
-var $$splitComponentImporter$5 = () => import("./diary-DGDBIv3a.js");
+var $$splitComponentImporter$5 = () => import("./diary-CLUIdufU.js");
 var Route$5 = createFileRoute("/diary")({ component: lazyRouteComponent($$splitComponentImporter$5, "component") });
 // src/routes/permissions.tsx
-var $$splitComponentImporter$4 = () => import("./permissions-tfjZSW_k.js");
+var $$splitComponentImporter$4 = () => import("./permissions-Dmybkveh.js");
 var Route$4 = createFileRoute("/permissions")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
 // src/routes/personality.tsx
-var $$splitComponentImporter$3 = () => import("./personality-BFKAb03m.js");
+var $$splitComponentImporter$3 = () => import("./personality-Dn3n4o75.js");
 var Route$3 = createFileRoute("/personality")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
 // src/routes/review.tsx
-var $$splitComponentImporter$2 = () => import("./review-Dj0QbqNW.js");
+var $$splitComponentImporter$2 = () => import("./review-B_2AdiZS.js");
 var Route$2 = createFileRoute("/review")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
 // src/routes/schedule.tsx
 var $$splitComponentImporter$1 = () => import("./schedule-WOpo4tJs.js");
 var Route$1 = createFileRoute("/schedule")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
 // src/routes/videos.tsx
-var $$splitComponentImporter = () => import("./videos--v9CNMi9.js");
+var $$splitComponentImporter = () => import("./videos-C1sGy0Fb.js");
 var Route = createFileRoute("/videos")({
 	validateSearch: (search) => ({ bv: typeof search.bv === "string" ? search.bv : void 0 }),
 	component: lazyRouteComponent($$splitComponentImporter, "component")

@@ -92,6 +92,7 @@ const favoriteSchema = z
   })
   .strict();
 export class DragonService {
+  updatesSupported = false;
   store: Store;
   controllers = new Set<AbortController>();
   run: ToolRunner;

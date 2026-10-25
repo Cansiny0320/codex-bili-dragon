@@ -24,6 +24,7 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     },
     { fetch: login.fetch },
   );
+  service.updatesSupported = true;
   service.saveConfig({
     ...service.config(),
     owner: { mid: '10001', name: '你' },
@@ -356,6 +357,18 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     await page.waitForFunction(() => document.querySelectorAll('.review-list-item').length === 1);
     assert.equal(calls.filter((args) => args[0] === 'comment').length, 1);
     await page.goto(http.origin + '/account');
+    await page.getByText('高级设置', { exact: true }).click();
+    const updateSwitch = page.getByRole('switch', { name: /^自动更新小白龙/ });
+    assert.equal(await updateSwitch.getAttribute('aria-checked'), 'false');
+    await updateSwitch.click();
+    await page.getByRole('button', { name: '保存更改', exact: true }).click();
+    await page.getByRole('status').waitFor();
+    assert.equal(service.config().updates.enabled, true);
+    assert.equal(service.config().enabled, false);
+    await page.reload();
+    await page.getByText('高级设置', { exact: true }).click();
+    assert.equal(await updateSwitch.getAttribute('aria-checked'), 'true');
+    await page.screenshot({ path: path.join(output, 'auto-update-settings.png'), fullPage: true });
     await page.getByAltText('B 站登录二维码').waitFor();
     assert.equal(await page.getByLabel('SESSDATA', { exact: true }).isVisible(), false);
     login.status(86090);

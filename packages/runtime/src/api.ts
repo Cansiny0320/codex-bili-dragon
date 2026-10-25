@@ -9,6 +9,8 @@ import { redact } from './upstream.js';
 import { credentialsSchema } from './login.js';
 import { activityInput } from './activity.js';
 import { materialInput, materialView } from './materials.js';
+import { updateState } from './update-state.js';
+import { version } from './paths.js';
 
 export type DaemonControl = Pick<Daemon, 'pause' | 'tick' | 'error'>;
 export function createActions(service: DragonService, daemon: DaemonControl) {
@@ -21,6 +23,11 @@ export function createActions(service: DragonService, daemon: DaemonControl) {
     state: () => ({
       ...service.status(),
       config: service.config(),
+      updates: {
+        ...updateState(service.store.dir),
+        runtimeVersion: version,
+        supported: service.updatesSupported,
+      },
       evidence: service.store.read('evidence', {}),
       listeners: service.store.read('listener-status', {}),
       schedule: service.store.read('schedule', {}),

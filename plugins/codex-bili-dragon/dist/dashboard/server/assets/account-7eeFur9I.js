@@ -2,7 +2,7 @@ import { i as __toESM } from "./rolldown-runtime-DYf_mQCB.js";
 import { L as require_react, o as require_jsx_runtime } from "./matchContext-Bm7-ArXH.js";
 import { O as useDashboard, k as useSettings, n as Button, t as createLucideIcon } from "./createLucideIcon-BmtKeUIw.js";
 import { n as NativeSelectOption, t as NativeSelect } from "./native-select-DbcBliUc.js";
-import { a as Loading, f as Input, i as Field, o as Panel, s as SaveBar } from "./common-BEruSkQj.js";
+import { a as Loading, f as Input, i as Field, o as Panel, s as SaveBar, u as Toggle } from "./common-BEruSkQj.js";
 import { n as CollapsibleContent, r as CollapsibleTrigger, t as Collapsible } from "./collapsible-DY5CxP_-.js";
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/eye-off.mjs
 /**
@@ -423,6 +423,24 @@ function Account() {
 					className: "disclosure-trigger",
 					children: "高级设置"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CollapsibleContent, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+						label: "自动更新小白龙",
+						checked: config.updates.enabled,
+						disabled: !state.updates.supported,
+						description: state.updates.supported ? "每六小时检查稳定版；兼容更新在空闲时生效。" : "自动更新仅支持 Codex 共享后台，前台开发模式不自动切换。",
+						onChange: (enabled) => setConfig({
+							...config,
+							updates: { enabled }
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "muted",
+						children: ["后台版本 ", state.updates.runtimeVersion]
+					}),
+					state.updates.message && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: state.updates.message
+					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "muted",
 						children: "登录信息只保存在这台电脑上，并用于连接 B 站。登录失效时，重新扫码即可。"

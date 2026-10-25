@@ -1,6 +1,8 @@
-import { _ as __commonJSMin, a as stopRuntime, c as materialInput, d as credentialsSchema, f as redact, g as errorMessage, i as requestRuntime, n as ensureRuntime, r as findRuntime, s as catalog, u as activityInput, v as __toESM } from "./runtime-mPQ0hftG.js";
+import { a as activityInput, c as __commonJSMin, l as __toESM, n as catalog, o as credentialsSchema, r as materialInput, s as redact } from "./service-Bs_eI39T.js";
+import { a as stopRuntime, i as requestRuntime, n as ensureRuntime, r as findRuntime, v as errorMessage } from "./runtime-BQhNtnnM.js";
 import { a as version, n as dataRoot, r as root } from "./paths-5G6hh4eK.js";
-import { C as optional, D as union, E as string, M as safeParse$1, O as unknown, S as object, T as record, _ as discriminatedUnion, b as looseObject, f as _enum, g as custom, h as boolean, j as _isoDateTime, k as toJSONSchema, m as array, p as _null, r as configSchema, u as ZodISODateTime, v as intersection, w as preprocess, x as number, y as literal } from "./policy-umMXvVui.js";
+import { C as safeParse$1, S as _isoDateTime, _ as string, a as array, b as toJSONSchema, c as discriminatedUnion, d as looseObject, f as number, g as record, h as preprocess, i as _null, l as intersection, m as optional, o as boolean, p as object, r as _enum, s as custom, t as ZodISODateTime, u as literal, v as union, y as unknown } from "./schemas-BWrad36H.js";
+import { r as configSchema } from "./policy-DjEN7pXP.js";
 import path from "node:path";
 import fs from "node:fs";
 import process from "node:process";
@@ -10259,16 +10261,15 @@ const icons = [{
 	sizes: ["512x512"]
 }];
 function createDragonMcp(dir = dataRoot) {
-	let connection;
 	let stopped = false;
 	const start = async () => {
-		connection = await ensureRuntime(dir);
+		const connection = await ensureRuntime(dir);
 		stopped = false;
 		return connection;
 	};
 	const call = async (action, input) => {
 		if (stopped) throw Error("后台已停止，请让 Codex 启动小白龙，或重新打开管理页。");
-		return requestRuntime(connection ?? await start(), action, input);
+		return requestRuntime(await start(), action, input);
 	};
 	const forward = (name, args) => call("tool", {
 		name,
@@ -10397,7 +10398,7 @@ function createDragonMcp(dir = dataRoot) {
 		return { contents: [{
 			uri: appUri,
 			mimeType: "text/html;profile=mcp-app",
-			text: fs.readFileSync(path.join(root, "dist/mcp-app/index.html"), "utf8"),
+			text: fs.readFileSync(path.join((await ensureRuntime(dir)).root, "dist/mcp-app/index.html"), "utf8"),
 			_meta: {
 				ui: { csp: {
 					resourceDomains: ["https://*.hdslb.com"],
@@ -10438,7 +10439,6 @@ function createDragonMcp(dir = dataRoot) {
 				} else if (action === "stop") {
 					result = await stopRuntime(dir);
 					stopped = true;
-					connection = void 0;
 				} else result = await call("pause");
 				return { content: [{
 					type: "text",

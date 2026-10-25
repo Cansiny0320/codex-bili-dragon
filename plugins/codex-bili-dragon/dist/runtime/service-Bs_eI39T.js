@@ -1,13 +1,14 @@
-import { a as version, i as vendor, n as dataRoot, r as root } from "./paths-5G6hh4eK.js";
-import { A as _coercedString, D as union, E as string$1, O as unknown, S as object, a as validateConfig, d as ZodString, f as _enum, i as readConfig, k as toJSONSchema, l as DateTime, m as array, t as assertChannel, x as number, y as literal } from "./policy-umMXvVui.js";
-import { t as ensureFfmpeg } from "./ffmpeg-DG17ZPhF.js";
+import { _ as errorCode, g as exclusive, h as atomic, v as errorMessage } from "./runtime-BQhNtnnM.js";
+import { i as vendor } from "./paths-5G6hh4eK.js";
+import { _ as string$1, a as array, b as toJSONSchema, f as number, n as ZodString, p as object, r as _enum, u as literal, v as union, x as _coercedString, y as unknown } from "./schemas-BWrad36H.js";
+import { a as validateConfig, i as readConfig, l as DateTime, t as assertChannel } from "./policy-DjEN7pXP.js";
+import { t as ensureFfmpeg } from "./ffmpeg-MQ-tQqLl.js";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { execFile, spawn } from "node:child_process";
+import { execFile } from "node:child_process";
 import fs from "node:fs";
 import crypto, { randomUUID } from "node:crypto";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { setTimeout as setTimeout$1 } from "node:timers/promises";
 // \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -31,90 +32,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 	enumerable: true
 }) : target, mod));
 var __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
-// src/types.ts
-const errorMessage = (error) => error instanceof Error ? error.message : String(error);
-const errorCode = (error) => typeof error === "object" && error !== null && "code" in error ? error.code : void 0;
-// src/store.ts
-function atomic(file, value) {
-	fs.mkdirSync(path.dirname(file), {
-		recursive: true,
-		mode: 448
-	});
-	const temp = file + "." + crypto.randomUUID() + ".tmp";
-	try {
-		fs.writeFileSync(temp, typeof value === "string" ? value : JSON.stringify(value, null, 2) + "\n", { mode: 384 });
-		fs.renameSync(temp, file);
-	} finally {
-		fs.rmSync(temp, { force: true });
-	}
-}
-function exclusive(file) {
-	fs.mkdirSync(path.dirname(file), {
-		recursive: true,
-		mode: 448
-	});
-	for (let attempt = 0; attempt < 2; attempt++) try {
-		const fd = fs.openSync(file, "wx", 384);
-		fs.writeFileSync(fd, JSON.stringify({ pid: process.pid }));
-		return () => {
-			fs.closeSync(fd);
-			fs.rmSync(file, { force: true });
-		};
-	} catch (e) {
-		if (errorCode(e) !== "EEXIST") throw e;
-		let owner;
-		try {
-			owner = JSON.parse(fs.readFileSync(file, "utf8"));
-		} catch {
-			throw Error("锁文件不完整，请检查运行状态：" + path.basename(file));
-		}
-		if (!Number.isInteger(owner.pid) || owner.pid < 1) throw Error("无效锁持有者");
-		try {
-			process.kill(owner.pid, 0);
-		} catch (err) {
-			if (errorCode(err) === "ESRCH") {
-				fs.unlinkSync(file);
-				continue;
-			}
-		}
-		throw Error("另一个操作正在进行：" + path.basename(file));
-	}
-	throw Error("无法取得锁");
-}
-var Store = class {
-	dir;
-	constructor(dir) {
-		this.dir = dir;
-	}
-	file(key) {
-		if (!/^[a-z0-9-]+$/.test(key)) throw Error("无效数据路径");
-		return path.join(this.dir, key + ".json");
-	}
-	read(key, fallback = null) {
-		const file = this.file(key);
-		try {
-			return JSON.parse(fs.readFileSync(file, "utf8"));
-		} catch (e) {
-			if (errorCode(e) === "ENOENT") return structuredClone(fallback);
-			throw Error("数据损坏，已停止自动处理：" + key);
-		}
-	}
-	write(key, value) {
-		atomic(this.file(key), value);
-		return value;
-	}
-	update(key, fallback, fn) {
-		const release = exclusive(this.file(key) + ".lock");
-		try {
-			const data = this.read(key, fallback);
-			const result = fn(data);
-			this.write(key, data);
-			return result ?? data;
-		} finally {
-			release();
-		}
-	}
-};
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/coerce.js
 function string(params) {
 	return _coercedString(ZodString, params);
@@ -5371,6 +5288,7 @@ const favoriteSchema = object({
 	comparison: string$1().trim().min(8).max(500).optional()
 }).strict();
 var DragonService = class {
+	updatesSupported = false;
 	store;
 	controllers = /* @__PURE__ */ new Set();
 	run;
@@ -6148,99 +6066,6 @@ function catalog(service, context = {}) {
 		tool("dragon_favorite", "仅在自动收藏开启时收藏已读取的视频。需具体用途，同类已有两条时 comparison 引用已收藏 BV 并说明更好在哪里；每天最多三条，30 天去重。", favoriteSchema, (a) => service.favorite(a))
 	];
 }
-// src/runtime.ts
-const connectionSchema = object({
-	origin: string$1().regex(/^http:\/\/127\.0\.0\.1:\d+$/),
-	token: string$1().regex(/^[\w-]{40,}$/),
-	pid: number().int().positive(),
-	version: string$1(),
-	root: string$1()
-});
-const connectionPath = (dir) => path.join(dir, "connection.json");
-async function requestRuntime(connection, action, input, timeout = 18e4) {
-	if (!/^[a-z-]+$/.test(action)) throw Error("无效后台操作");
-	const read = action === "state" || action === "runtime";
-	const response = await fetch(connection.origin + "/api/" + action, {
-		method: read ? "GET" : "POST",
-		headers: {
-			authorization: "Bearer " + connection.token,
-			origin: connection.origin,
-			"content-type": "application/json"
-		},
-		body: read ? void 0 : JSON.stringify(input ?? {}),
-		signal: AbortSignal.timeout(timeout)
-	});
-	const result = await response.json();
-	if (!response.ok) {
-		const message = typeof result === "object" && result !== null && "error" in result ? String(result.error) : "后台请求失败";
-		throw Error(message);
-	}
-	return result;
-}
-async function findRuntime(dir = dataRoot) {
-	let saved;
-	try {
-		saved = connectionSchema.parse(JSON.parse(fs.readFileSync(connectionPath(dir), "utf8")));
-	} catch (error) {
-		if (errorCode(error) === "ENOENT") return null;
-		throw Error("后台连接记录损坏，请先核查 connection.json");
-	}
-	try {
-		const status = await requestRuntime(saved, "runtime", void 0, 1e3);
-		return status.pid === saved.pid && status.protocol === 1 ? saved : null;
-	} catch {
-		return null;
-	}
-}
-async function ensureRuntime(dir = dataRoot) {
-	const current = await findRuntime(dir);
-	if (current) {
-		if (current.version !== version) throw Error("后台版本已变化，请先停止后台，再重新启动。数据会保留。");
-		return current;
-	}
-	fs.mkdirSync(dir, {
-		recursive: true,
-		mode: 448
-	});
-	const log = fs.openSync(path.join(dir, "server.log"), "a", 384);
-	const child = spawn(process.execPath, [path.join(root, "dist/runtime/worker.js")], {
-		cwd: root,
-		env: {
-			...process.env,
-			BILI_DRAGON_DATA: dir
-		},
-		detached: true,
-		windowsHide: true,
-		stdio: [
-			"ignore",
-			log,
-			log
-		]
-	});
-	fs.closeSync(log);
-	let failure;
-	child.once("error", (error) => {
-		failure = error;
-	});
-	child.unref();
-	for (let attempt = 0; attempt < 100; attempt++) {
-		const ready = await findRuntime(dir);
-		if (ready) return ready;
-		if (failure) throw failure;
-		await setTimeout$1(100);
-	}
-	throw Error("后台未能启动，请检查数据目录中的 server.log");
-}
-async function stopRuntime(dir = dataRoot) {
-	const current = await findRuntime(dir);
-	if (!current) return { stopped: true };
-	await requestRuntime(current, "stop");
-	for (let attempt = 0; attempt < 100; attempt++) {
-		if (!fs.existsSync(connectionPath(dir))) return { stopped: true };
-		await setTimeout$1(100);
-	}
-	throw Error("后台仍在停止，请稍后检查状态");
-}
-export { __commonJSMin as _, stopRuntime as a, materialInput as c, credentialsSchema as d, redact as f, errorMessage as g, exclusive as h, requestRuntime as i, materialView as l, atomic as m, ensureRuntime as n, DragonService as o, Store as p, findRuntime as r, catalog as s, connectionPath as t, activityInput as u, __toESM as v };
+export { activityInput as a, __commonJSMin as c, materialView as i, __toESM as l, catalog as n, credentialsSchema as o, materialInput as r, redact as s, DragonService as t };
 
-//# sourceMappingURL=runtime-mPQ0hftG.js.map
+//# sourceMappingURL=service-Bs_eI39T.js.map
