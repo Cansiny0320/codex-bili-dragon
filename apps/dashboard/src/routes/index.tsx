@@ -77,7 +77,7 @@ function Home() {
         </Panel>
         <Panel>
           <SectionTitle to="/review">
-            待我审核 {drafts.length > 0 && <b className="count-badge">{drafts.length}</b>}
+            消息 {drafts.length > 0 && <b className="count-badge">{drafts.length}</b>}
           </SectionTitle>
           <Tabs value={channel} onValueChange={(value) => setChannel(value as Channel)}>
             <TabsList variant="line" className="mb-3">

@@ -1,10 +1,9 @@
 import { i as __toESM } from "./rolldown-runtime-DYf_mQCB.js";
 import { L as require_react, o as require_jsx_runtime } from "./matchContext-Bm7-ArXH.js";
 import { D as formatTime, O as useDashboard, j as Link, n as Button } from "./createLucideIcon-BmtKeUIw.js";
-import { n as NativeSelectOption, t as NativeSelect } from "./native-select-DbcBliUc.js";
-import { a as Loading, o as Panel, r as Empty } from "./common-BEruSkQj.js";
-// src/routes/activity.tsx?tsr-split=component
-var import_react = /* @__PURE__ */ __toESM(require_react());
+import { a as Loading, r as Empty } from "./common-BEruSkQj.js";
+// src/components/activity-list.tsx
+var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var import_jsx_runtime = require_jsx_runtime();
 var sources = {
 	autonomous: "自主运行",
@@ -20,10 +19,8 @@ var states = {
 	draft: "待审核"
 };
 var pageSize = 30;
-function ActivityPage() {
+function ActivityList({ type = "", status = "", emptyMessage = "没有符合条件的行动记录。" }) {
 	const client = useDashboard((state) => state.client);
-	const [type, setType] = (0, import_react.useState)("");
-	const [status, setStatus] = (0, import_react.useState)("");
 	const [offset, setOffset] = (0, import_react.useState)(0);
 	const [result, setResult] = (0, import_react.useState)(null);
 	const [error, setError] = (0, import_react.useState)("");
@@ -61,78 +58,36 @@ function ActivityPage() {
 		status,
 		offset
 	]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, { children: [
-		/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: "行动记录" }),
-		/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "review-filters activity-filters",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelect, {
-				"aria-label": "行动类型",
-				value: type,
-				onChange: (event) => {
-					setType(event.target.value);
-					setOffset(0);
-				},
-				children: Object.entries({
-					"": "全部行动",
-					dm: "私信",
-					comments: "评论",
-					search: "搜索",
-					read: "阅读素材",
-					diary: "日记",
-					favorite: "收藏",
-					task: "运行任务",
-					feedback: "查看反馈"
-				}).map(([value, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-					value,
-					children: label
-				}, value))
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(NativeSelect, {
-				"aria-label": "行动结果",
-				value: status,
-				onChange: (event) => {
-					setStatus(event.target.value);
-					setOffset(0);
-				},
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-					value: "",
-					children: "全部结果"
-				}), Object.entries(states).map(([value, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-					value,
-					children: label
-				}, value))]
-			})]
-		}),
-		error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: error }) : !result ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loading, {}) : !result.items.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: "没有符合条件的行动记录。" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "activity-list",
-			children: result.items.map((row) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ActivityRow, { row }, row.id))
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "activity-pagination",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-					className: "muted",
-					children: [
-						offset + 1,
-						"–",
-						offset + result.items.length,
-						" / ",
-						result.total
-					]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "outline",
-					disabled: offset === 0,
-					onClick: () => setOffset(Math.max(0, offset - pageSize)),
-					children: "上一页"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "outline",
-					disabled: offset + pageSize >= result.total,
-					onClick: () => setOffset(offset + pageSize),
-					children: "下一页"
-				})
-			]
-		})] })
-	] });
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: error }) : !result ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loading, {}) : !result.items.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: emptyMessage }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "activity-list",
+		children: result.items.map((row) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ActivityRow, { row }, row.id))
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "activity-pagination",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+				className: "muted",
+				children: [
+					offset + 1,
+					"–",
+					offset + result.items.length,
+					" / ",
+					result.total
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline",
+				disabled: offset === 0,
+				onClick: () => setOffset(Math.max(0, offset - pageSize)),
+				children: "上一页"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline",
+				disabled: offset + pageSize >= result.total,
+				onClick: () => setOffset(offset + pageSize),
+				children: "下一页"
+			})
+		]
+	})] }) });
 }
 function ActivityRow({ row }) {
 	const sent = [
@@ -217,4 +172,4 @@ function ActivityRow({ row }) {
 		})]
 	});
 }
-export { ActivityPage as component };
+export { ActivityList as t };

@@ -4,7 +4,8 @@ import { D as formatTime, O as useDashboard, n as Button, t as createLucideIcon 
 import { i as TabsTrigger, n as TabsContent, r as TabsList, t as Tabs } from "./tabs-DiMSKtwS.js";
 import { n as NativeSelectOption, t as NativeSelect } from "./native-select-DbcBliUc.js";
 import { a as Loading, o as Panel, r as Empty } from "./common-BEruSkQj.js";
-import { c as CircleAlert, o as Clock } from "./router-D3aR2GNG.js";
+import { c as CircleAlert, o as Clock } from "./router-DY6tisPq.js";
+import { t as ActivityList } from "./activity-list-CZ_ofmoq.js";
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/circle-question-mark.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -45,9 +46,9 @@ function Review() {
 		busy: s.busy,
 		perform: s.perform
 	}));
-	const [channel, setChannel] = (0, import_react.useState)("comments"), [selected, setSelected] = (0, import_react.useState)(""), [showAll, setAll] = (0, import_react.useState)(false);
+	const [channel, setChannel] = (0, import_react.useState)("comments"), [selected, setSelected] = (0, import_react.useState)(""), [view, setView] = (0, import_react.useState)("pending");
 	if (!state) return loading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loading, {}) : null;
-	const drafts = state.drafts.filter((d) => state.inbox.find((e) => e.id === d.eventId)?.channel === channel && (showAll || d.state === "draft"));
+	const drafts = state.drafts.filter((d) => state.inbox.find((e) => e.id === d.eventId)?.channel === channel && d.state === "draft");
 	const draft = drafts.find((d) => d.id === selected) ?? drafts[0];
 	const event = state.inbox.find((e) => e.id === draft?.eventId);
 	const issues = state.jobs.filter((j) => j.state === "needs-review" || j.state === "pending");
@@ -62,11 +63,11 @@ function Review() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
 		value: channel,
 		onValueChange: (value) => setChannel(value),
-		className: (draft || ops.length || issues.length ? "split-page" : "page-stack") + " review-page",
+		className: (view === "pending" && (draft || ops.length || issues.length) ? "split-page" : "page-stack") + " review-page",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
 			className: "list-panel",
 			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: "待我审核" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: "消息" }),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "review-filters",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsList, {
@@ -81,24 +82,34 @@ function Review() {
 								"评论",
 								"私信",
 								"直播弹幕"
-							][i], /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: state.drafts.filter((d) => d.state === "draft" && state.inbox.find((e) => e.id === d.eventId)?.channel === c).length })]
+							][i], view === "pending" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: state.drafts.filter((d) => d.state === "draft" && state.inbox.find((e) => e.id === d.eventId)?.channel === c).length })]
 						}, c))
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(NativeSelect, {
-						"aria-label": "审核筛选",
-						value: String(showAll),
-						onChange: (e) => setAll(e.target.value === "true"),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-							value: "false",
-							children: "待处理"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-							value: "true",
-							children: "全部记录"
-						})]
+						"aria-label": "消息筛选",
+						value: view,
+						onChange: (e) => setView(e.target.value),
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
+								value: "all",
+								children: "全部记录"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
+								value: "sent",
+								children: "已发送"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
+								value: "pending",
+								children: "待审核"
+							})
+						]
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 					value: channel,
-					children: drafts.length ? drafts.map((d) => {
+					children: view !== "pending" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ActivityList, {
+						type: view === "sent" ? `sent:${channel}` : channel,
+						emptyMessage: view === "sent" ? "暂无已发送的消息。" : "暂无消息记录。"
+					}, channel + view) : drafts.length ? drafts.map((d) => {
 						const e = state.inbox.find((x) => x.id === d.eventId);
 						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 							variant: "ghost",
@@ -119,7 +130,7 @@ function Review() {
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: "暂无待审核的消息。" })
 				})
 			]
-		}), (draft || ops.length > 0 || issues.length > 0) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
+		}), view === "pending" && (draft || ops.length > 0 || issues.length > 0) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
 			className: "review-detail",
 			children: [
 				draft && event ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [

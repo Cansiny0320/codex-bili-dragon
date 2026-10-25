@@ -308,6 +308,42 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
       '这是完整私信正文。'.repeat(15) + '私信结束标记',
     );
     await page.screenshot({ path: path.join(output, 'activity-dm.png') });
+    await page.goto(http.origin + '/review');
+    await page.getByRole('heading', { name: '消息', exact: true }).waitFor();
+    await page.getByRole('tab', { name: /^私信/ }).click();
+    await page.getByLabel('消息筛选').selectOption('sent');
+    await page.locator('.activity-row summary').click();
+    assert.equal(
+      await page.locator('.activity-body').innerText(),
+      '这是完整私信正文。'.repeat(15) + '私信结束标记',
+    );
+    await page.getByLabel('消息筛选').selectOption('all');
+    await page.getByRole('tab', { name: /^评论/ }).click();
+    await page.waitForFunction(() => document.querySelectorAll('.activity-row').length === 3);
+    assert.equal(calls.length, 0, '查看消息记录不能触发发送');
+    await page.screenshot({ path: path.join(output, 'messages-history.png') });
+    store.update('activities', [], (items) => {
+      for (let i = 0; i < 31; i++)
+        items.push({
+          id: 'message-page-' + i,
+          at: now,
+          action: 'reply',
+          source: 'autonomous',
+          channel: 'dm',
+          state: 'success',
+          summary: '私信分页 ' + i,
+          text: '分页消息正文 ' + i,
+        });
+    });
+    await page.getByRole('tab', { name: /^私信/ }).click();
+    await page.getByLabel('消息筛选').selectOption('sent');
+    await page.getByText('1–30 / 32', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '下一页', exact: true }).click();
+    await page.getByText('31–32 / 32', { exact: true }).waitFor();
+    await page.getByRole('tab', { name: /^评论/ }).click();
+    await page.getByText('暂无已发送的消息。', { exact: true }).waitFor();
+    await page.getByLabel('消息筛选').selectOption('pending');
+    await page.getByRole('button', { name: '批准发送', exact: true }).waitFor();
     await page.goto(http.origin + '/schedule');
     const windowCheckbox = page.getByRole('checkbox', { name: '启用时段1', exact: true });
     await windowCheckbox.uncheck();
@@ -478,6 +514,13 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     for (const route of routes) {
       await page.goto(http.origin + route);
       await checkLayout(page, (route.slice(1) || 'home') + '-mobile');
+      if (route === '/review') {
+        await page.getByRole('tab', { name: /^私信/ }).click();
+        await page.getByLabel('消息筛选').selectOption('sent');
+        await page.locator('.activity-row').first().waitFor();
+        await page.locator('.activity-row summary').first().click();
+        await checkLayout(page, 'messages-sent-mobile');
+      }
     }
     await page.getByRole('button', { name: '打开导航' }).click();
     await page.getByRole('navigation').getByRole('link', { name: '首页', exact: true }).click();

@@ -26,7 +26,14 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
     store,
     async (args) => {
       outgoing.push(args);
-      return { code: 0, out: '模拟成功', err: '' };
+      return {
+        code: 0,
+        out:
+          args[0] === 'comment'
+            ? 'https://www.bilibili.com/video/BV1234567890/#reply789'
+            : '模拟成功',
+        err: '',
+      };
     },
     { fetch: login.fetch },
   );
@@ -182,7 +189,7 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
       '观看记录',
       '行动记录',
       '日记',
-      '待我审核',
+      '消息',
       '个性与兴趣',
       '活动时间',
       '操作权限',
@@ -194,7 +201,7 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
         if (width === 390) await frame.getByRole('button', { name: '打开导航' }).click();
         await frame
           .getByRole('navigation')
-          .getByRole('link', { name: pages[index], exact: pages[index] !== '待我审核' })
+          .getByRole('link', { name: pages[index], exact: pages[index] !== '消息' })
           .click();
         await frame.getByText('正在加载', { exact: true }).waitFor({ state: 'hidden' });
         assert.deepEqual(await frame.getByRole('alert').allTextContents(), [], pages[index]);
@@ -215,7 +222,7 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
     const navigate = async (name: string) =>
       frame
         .getByRole('navigation')
-        .getByRole('link', { name, exact: name !== '待我审核' })
+        .getByRole('link', { name, exact: name !== '消息' })
         .click();
     await navigate('观看记录');
     await frame.getByText('字幕正文', { exact: true }).waitFor();
@@ -232,7 +239,7 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
     await frame.getByRole('button', { name: '保存更改' }).click();
     await frame.getByRole('status').waitFor();
     assert.equal(service.config().persona.name, '原生小白龙');
-    await navigate('待我审核');
+    await navigate('消息');
     assert.ok(await frame.getByRole('button', { name: '批准发送' }).isDisabled());
     await navigate('操作权限');
     await frame.getByLabel('模型', { exact: true }).selectOption('fixture-thinking');
@@ -242,15 +249,18 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
     await frame.getByRole('status').waitFor();
     assert.equal(service.config().model, 'fixture-thinking');
     assert.equal(service.config().reasoningEffort, 'high');
-    await navigate('待我审核');
+    await navigate('消息');
     await frame.getByRole('button', { name: '批准发送' }).click();
     await frame.getByText('暂无待审核的消息。').waitFor();
     assert.equal(outgoing.filter((args) => args[0] === 'comment').length, 1);
-    await navigate('行动记录');
-    await frame.getByLabel('行动类型').selectOption('comments');
+    await frame.getByLabel('消息筛选').selectOption('sent');
     await frame.locator('.activity-row summary').click();
     await frame.locator('.activity-body').getByText('谢谢分享。', { exact: true }).waitFor();
-    await frame.getByText('已发送', { exact: true }).waitFor();
+    await frame.locator('.activity-state').getByText('已发送', { exact: true }).waitFor();
+    assert.equal(
+      await frame.getByRole('link', { name: '查看已发评论' }).getAttribute('href'),
+      'https://www.bilibili.com/video/BV1234567890/#reply789',
+    );
     await page.screenshot({ path: path.join(output, 'activity-comment.png') });
     await navigate('账号连接');
     await frame.getByAltText('B 站登录二维码').waitFor();

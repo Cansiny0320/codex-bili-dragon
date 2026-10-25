@@ -92,6 +92,39 @@ test('历史记录回填完整评论和不完整私信，筛选分页不丢弃�
     assert.ok(comment.link?.endsWith('#reply123'));
     assert.ok(!JSON.stringify(comment).includes('secret'));
     assert.equal(log.list({ offset: 1, limit: 1 }).items[0].id, comment.id);
+    store.write('activities', [
+      {
+        id: 'rejected',
+        at: '2026-01-03',
+        action: 'reject',
+        source: 'manual',
+        state: 'success',
+        channel: 'dm',
+        summary: '拒绝草稿',
+        text: '未发送',
+      },
+    ]);
+    store.update('operations', [], (items) => {
+      items.push({
+        key: 'reply:live:12',
+        channel: 'live',
+        state: 'confirmed',
+        at: '2026-01-04',
+        text: '直播回复',
+      });
+      items.push({
+        key: 'reply:dm:12:35',
+        channel: 'dm',
+        state: 'needs-review',
+        at: '2026-01-05',
+        text: '结果未确认',
+      });
+    });
+    const sent = log.list({ type: 'sent:dm', limit: 1 });
+    assert.equal(sent.total, 1, '发送记录分页前排除拒绝草稿和结果未确认的尝试');
+    assert.equal(sent.items[0].text, '片段…');
+    assert.equal(log.list({ type: 'sent:comments' }).items[0].id, comment.id);
+    assert.equal(log.list({ type: 'live' }).items[0].text, '直播回复');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

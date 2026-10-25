@@ -5107,7 +5107,15 @@ var ActivityLog = class {
 				legacy: true
 			});
 		}
-		const filtered = rows.filter((row) => (!query.type || (query.type === "dm" || query.type === "comments" ? row.channel === query.type : query.type === "read" ? [
+		const filtered = rows.filter((row) => (!query.type || (query.type.startsWith("sent:") ? row.channel === query.type.slice(5) && row.state === "success" && [
+			"share",
+			"reply",
+			"approve"
+		].includes(row.action) : [
+			"dm",
+			"comments",
+			"live"
+		].includes(query.type) ? row.channel === query.type : query.type === "read" ? [
 			"read",
 			"video",
 			"subtitles",
@@ -6622,4 +6630,4 @@ function catalog(service, context = {}) {
 }
 export { configResponse as a, isolatedConfig as c, materialView as d, activityInput as f, __toESM as g, __commonJSMin as h, accountResponse as i, threadResponse as l, redact as m, catalog as n, connectCodex as o, credentialsSchema as p, CodexSession as r, findCodex as s, DragonService as t, materialInput as u };
 
-//# sourceMappingURL=service-jvl5Nd0B.js.map
+//# sourceMappingURL=service-ByUvAcd3.js.map

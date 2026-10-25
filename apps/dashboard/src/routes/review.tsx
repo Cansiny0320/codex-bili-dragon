@@ -7,6 +7,7 @@ import type { Channel } from '@bili-dragon/runtime/types';
 import { useDashboard, formatTime } from '../lib/state';
 import { Panel, Empty, Loading } from '../components/common';
 import { Button } from '../components/ui/button';
+import { ActivityList } from '../components/activity-list';
 export const Route = createFileRoute('/review')({ component: Review });
 function Review() {
   const { state, loading, busy, perform } = useDashboard((s) => ({
@@ -17,12 +18,10 @@ function Review() {
   }));
   const [channel, setChannel] = useState<Channel>('comments'),
     [selected, setSelected] = useState(''),
-    [showAll, setAll] = useState(false);
+    [view, setView] = useState('pending');
   if (!state) return loading ? <Loading /> : null;
   const drafts = state.drafts.filter(
-    (d) =>
-      state.inbox.find((e) => e.id === d.eventId)?.channel === channel &&
-      (showAll || d.state === 'draft'),
+    (d) => state.inbox.find((e) => e.id === d.eventId)?.channel === channel && d.state === 'draft',
   );
   const draft = drafts.find((d) => d.id === selected) ?? drafts[0];
   const event = state.inbox.find((e) => e.id === draft?.eventId);
@@ -40,39 +39,50 @@ function Review() {
       value={channel}
       onValueChange={(value) => setChannel(value as Channel)}
       className={
-        (draft || ops.length || issues.length ? 'split-page' : 'page-stack') + ' review-page'
+        (view === 'pending' && (draft || ops.length || issues.length)
+          ? 'split-page'
+          : 'page-stack') + ' review-page'
       }
     >
       <Panel className="list-panel">
-        <h1>待我审核</h1>
+        <h1>消息</h1>
         <div className="review-filters">
           <TabsList variant="line">
             {(['comments', 'dm', 'live'] as const).map((c, i) => (
               <TabsTrigger key={c} value={c}>
                 {['评论', '私信', '直播弹幕'][i]}
-                <span>
-                  {
-                    state.drafts.filter(
-                      (d) =>
-                        d.state === 'draft' &&
-                        state.inbox.find((e) => e.id === d.eventId)?.channel === c,
-                    ).length
-                  }
-                </span>
+                {view === 'pending' && (
+                  <span>
+                    {
+                      state.drafts.filter(
+                        (d) =>
+                          d.state === 'draft' &&
+                          state.inbox.find((e) => e.id === d.eventId)?.channel === c,
+                      ).length
+                    }
+                  </span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
           <NativeSelect
-            aria-label="审核筛选"
-            value={String(showAll)}
-            onChange={(e) => setAll(e.target.value === 'true')}
+            aria-label="消息筛选"
+            value={view}
+            onChange={(e) => setView(e.target.value)}
           >
-            <NativeSelectOption value="false">待处理</NativeSelectOption>
-            <NativeSelectOption value="true">全部记录</NativeSelectOption>
+            <NativeSelectOption value="all">全部记录</NativeSelectOption>
+            <NativeSelectOption value="sent">已发送</NativeSelectOption>
+            <NativeSelectOption value="pending">待审核</NativeSelectOption>
           </NativeSelect>
         </div>
         <TabsContent value={channel}>
-          {drafts.length ? (
+          {view !== 'pending' ? (
+            <ActivityList
+              key={channel + view}
+              type={view === 'sent' ? `sent:${channel}` : channel}
+              emptyMessage={view === 'sent' ? '暂无已发送的消息。' : '暂无消息记录。'}
+            />
+          ) : drafts.length ? (
             drafts.map((d) => {
               const e = state.inbox.find((x) => x.id === d.eventId);
               return (
@@ -99,7 +109,7 @@ function Review() {
           )}
         </TabsContent>
       </Panel>
-      {(draft || ops.length > 0 || issues.length > 0) && (
+      {view === 'pending' && (draft || ops.length > 0 || issues.length > 0) && (
         <Panel className="review-detail">
           {draft && event ? (
             <>

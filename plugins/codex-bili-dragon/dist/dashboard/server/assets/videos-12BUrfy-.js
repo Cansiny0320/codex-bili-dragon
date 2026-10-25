@@ -4,7 +4,7 @@ import { A as videosFrom, D as formatTime, O as useDashboard, n as Button, t as 
 import { i as TabsTrigger, n as TabsContent, r as TabsList, t as Tabs } from "./tabs-DiMSKtwS.js";
 import { a as Loading, f as Input, n as Cover, o as Panel, r as Empty, t as BiliLink } from "./common-BEruSkQj.js";
 import { t as MessageSquare } from "./message-square-Dd8LBsos.js";
-import { n as Route } from "./router-D3aR2GNG.js";
+import { n as Route } from "./router-DY6tisPq.js";
 import { n as CollapsibleContent, r as CollapsibleTrigger, t as Collapsible } from "./collapsible-DY5CxP_-.js";
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**

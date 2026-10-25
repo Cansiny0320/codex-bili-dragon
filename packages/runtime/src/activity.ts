@@ -308,22 +308,26 @@ export class ActivityLog {
       .filter(
         (row) =>
           (!query.type ||
-            (query.type === 'dm' || query.type === 'comments'
-              ? row.channel === query.type
-              : query.type === 'read'
-                ? [
-                    'read',
-                    'video',
-                    'subtitles',
-                    'comments',
-                    'frames',
-                    'debrief',
-                    'feed',
-                    'live-history',
-                    'session',
-                    'quota',
-                  ].includes(row.action)
-                : row.action === query.type)) &&
+            (query.type.startsWith('sent:')
+              ? row.channel === query.type.slice(5) &&
+                row.state === 'success' &&
+                ['share', 'reply', 'approve'].includes(row.action)
+              : ['dm', 'comments', 'live'].includes(query.type)
+                ? row.channel === query.type
+                : query.type === 'read'
+                  ? [
+                      'read',
+                      'video',
+                      'subtitles',
+                      'comments',
+                      'frames',
+                      'debrief',
+                      'feed',
+                      'live-history',
+                      'session',
+                      'quota',
+                    ].includes(row.action)
+                  : row.action === query.type)) &&
           (!query.state || row.state === query.state),
       )
       .sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id));

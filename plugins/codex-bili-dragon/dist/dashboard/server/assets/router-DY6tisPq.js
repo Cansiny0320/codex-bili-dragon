@@ -1135,7 +1135,7 @@ var __iconData$5 = {
 };
 __iconData$5.node;
 var Menu = createLucideIcon(__iconData$5);
-// ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/notebook-text.mjs
+// ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/messages-square.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
 *
@@ -1143,6 +1143,26 @@ var Menu = createLucideIcon(__iconData$5);
 * See the LICENSE file in the root directory of this source tree.
 */
 var __iconData$4 = {
+	name: "messages-square",
+	size: 24,
+	node: [["path", {
+		d: "M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z",
+		key: "1n2ejm"
+	}], ["path", {
+		d: "M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1",
+		key: "1qfcsi"
+	}]]
+};
+__iconData$4.node;
+var MessagesSquare = createLucideIcon(__iconData$4);
+// ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/notebook-text.mjs
+/**
+* @license lucide-react v1.61.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$3 = {
 	name: "notebook-text",
 	size: 24,
 	node: [
@@ -1184,8 +1204,8 @@ var __iconData$4 = {
 		}]
 	]
 };
-__iconData$4.node;
-var NotebookText = createLucideIcon(__iconData$4);
+__iconData$3.node;
+var NotebookText = createLucideIcon(__iconData$3);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/rotate-ccw-clock.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1193,7 +1213,7 @@ var NotebookText = createLucideIcon(__iconData$4);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$3 = {
+var __iconData$2 = {
 	name: "rotate-ccw-clock",
 	size: 24,
 	node: [
@@ -1212,8 +1232,8 @@ var __iconData$3 = {
 	],
 	aliases: ["history"]
 };
-__iconData$3.node;
-var RotateCcwClock = createLucideIcon(__iconData$3);
+__iconData$2.node;
+var RotateCcwClock = createLucideIcon(__iconData$2);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1221,7 +1241,7 @@ var RotateCcwClock = createLucideIcon(__iconData$3);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$2 = {
+var __iconData$1 = {
 	name: "shield-check",
 	size: 24,
 	node: [["path", {
@@ -1232,33 +1252,8 @@ var __iconData$2 = {
 		key: "dzmm74"
 	}]]
 };
-__iconData$2.node;
-var ShieldCheck = createLucideIcon(__iconData$2);
-// ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/square-check.mjs
-/**
-* @license lucide-react v1.61.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var __iconData$1 = {
-	name: "square-check",
-	size: 24,
-	node: [["rect", {
-		width: "18",
-		height: "18",
-		x: "3",
-		y: "3",
-		rx: "2",
-		key: "afitv7"
-	}], ["path", {
-		d: "m16 9-5.5 5.5L8 12",
-		key: "xofnsj"
-	}]],
-	aliases: ["check-square-2"]
-};
 __iconData$1.node;
-var SquareCheck = createLucideIcon(__iconData$1);
+var ShieldCheck = createLucideIcon(__iconData$1);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/x.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1305,8 +1300,8 @@ var items = [
 	],
 	[
 		"/review",
-		"待我审核",
-		SquareCheck
+		"消息",
+		MessagesSquare
 	],
 	[
 		"/personality",
@@ -1440,31 +1435,31 @@ var Route$9 = createRootRoute({
 	})
 });
 // src/routes/index.tsx
-var $$splitComponentImporter$8 = () => import("./routes-Jpf_hCJd.js");
+var $$splitComponentImporter$8 = () => import("./routes-CvRhYdTg.js");
 var Route$8 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$8, "component") });
 // src/routes/account.tsx
 var $$splitComponentImporter$7 = () => import("./account-C58k8uMT.js");
 var Route$7 = createFileRoute("/account")({ component: lazyRouteComponent($$splitComponentImporter$7, "component") });
 // src/routes/activity.tsx
-var $$splitComponentImporter$6 = () => import("./activity-BJ8YZdBO.js");
+var $$splitComponentImporter$6 = () => import("./activity-CQDkkjxf.js");
 var Route$6 = createFileRoute("/activity")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
 // src/routes/diary.tsx
-var $$splitComponentImporter$5 = () => import("./diary-BxudzWRT.js");
+var $$splitComponentImporter$5 = () => import("./diary-BRhvxmlc.js");
 var Route$5 = createFileRoute("/diary")({ component: lazyRouteComponent($$splitComponentImporter$5, "component") });
 // src/routes/permissions.tsx
-var $$splitComponentImporter$4 = () => import("./permissions-B7YIIp4j.js");
+var $$splitComponentImporter$4 = () => import("./permissions-CcFuofVy.js");
 var Route$4 = createFileRoute("/permissions")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
 // src/routes/personality.tsx
-var $$splitComponentImporter$3 = () => import("./personality-CNall-CE.js");
+var $$splitComponentImporter$3 = () => import("./personality-DU2Lh97s.js");
 var Route$3 = createFileRoute("/personality")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
 // src/routes/review.tsx
-var $$splitComponentImporter$2 = () => import("./review-khtAjw4I.js");
+var $$splitComponentImporter$2 = () => import("./review-BpQBbM9x.js");
 var Route$2 = createFileRoute("/review")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
 // src/routes/schedule.tsx
 var $$splitComponentImporter$1 = () => import("./schedule-B-RpPkcC.js");
 var Route$1 = createFileRoute("/schedule")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
 // src/routes/videos.tsx
-var $$splitComponentImporter = () => import("./videos-Ba1OCWYY.js");
+var $$splitComponentImporter = () => import("./videos-12BUrfy-.js");
 var Route = createFileRoute("/videos")({
 	validateSearch: (search) => ({ bv: typeof search.bv === "string" ? search.bv : void 0 }),
 	component: lazyRouteComponent($$splitComponentImporter, "component")

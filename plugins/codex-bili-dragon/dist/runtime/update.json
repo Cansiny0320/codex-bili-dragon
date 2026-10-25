@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "version": "0.10.0",
-  "bridge": "b4f0dfd6221656582034035f0ce524033c9f4f0398b84da4859f4c2e7465b49a",
+  "version": "0.10.1",
+  "bridge": "81e4354646007f0ccc61deb121c4c1333564efaea53ed4e26f8886ceef33db12",
   "contract": "3a18e67c5276ae286660b1fcdf5b08402b6e8d8adda876a223b013c3ca05cab4",
   "data": 1,
   "protocol": 1
