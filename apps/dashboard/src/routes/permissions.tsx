@@ -1,3 +1,4 @@
+import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
 import { createFileRoute } from '@tanstack/react-router';
 import { MessageSquare, Mail, PlayCircle } from 'lucide-react';
 import { useSettings } from '../lib/state';
@@ -65,7 +66,7 @@ function Permissions() {
           {!single && s.enabled && (
             <div className="form-columns four">
               <Field label="分享方式">
-                <select
+                <NativeSelect
                   disabled={!s.enabled}
                   value={s.via}
                   onChange={(e) =>
@@ -75,9 +76,9 @@ function Permissions() {
                     })
                   }
                 >
-                  <option value="comment">发送评论</option>
-                  <option value="dm">发送私信</option>
-                </select>
+                  <NativeSelectOption value="comment">发送评论</NativeSelectOption>
+                  <NativeSelectOption value="dm">发送私信</NativeSelectOption>
+                </NativeSelect>
               </Field>
               <Field label="最低分享评分">
                 <Input

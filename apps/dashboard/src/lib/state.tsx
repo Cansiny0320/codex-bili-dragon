@@ -1,160 +1,69 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import type { AdminState } from '@bili-dragon/runtime/api';
-import type { Config } from '@bili-dragon/runtime/config';
 import { createClient } from './client';
+import { createDashboardStore, type DashboardStore, type DashboardState } from './dashboard-store';
+import { createSettingsStore } from './settings-store';
 
-type Client = ReturnType<typeof createClient>;
-interface DashboardContext {
-  state: AdminState | null;
-  client: Client | null;
-  loading: boolean;
-  busy: boolean;
-  error: string;
-  notice: string;
-  refresh: () => Promise<void>;
-  perform: (action: (client: Client) => Promise<unknown>, success?: string) => Promise<boolean>;
-  clearError: () => void;
-}
-const Context = createContext<DashboardContext | null>(null);
+const Context = createContext<DashboardStore | null>(null);
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AdminState | null>(null);
-  const [client, setClient] = useState<Client | null>(null);
-  const [loading, setLoading] = useState(true),
-    [busy, setBusy] = useState(false);
-  const [error, setError] = useState(''),
-    [notice, setNotice] = useState('');
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [store] = useState(createDashboardStore);
   useEffect(() => {
-    if (window.dragonApp) {
-      setClient(() => window.dragonApp!.client);
-      if (window.dragonApp.initialState) {
-        setState(window.dragonApp.initialState);
-        setLoading(false);
-      }
-      const receive = (event: Event) => {
-        setState((event as CustomEvent<AdminState>).detail);
-        setLoading(false);
-      };
+    const app = window.dragonApp;
+    const receive = (event: Event) =>
+      store.getState().receive((event as CustomEvent<AdminState>).detail);
+    if (app) {
+      store.getState().connect(app.client, app.initialState);
       window.addEventListener('dragon-state', receive);
-      return () => {
-        window.removeEventListener('dragon-state', receive);
-        if (timer.current) clearTimeout(timer.current);
-      };
-    }
-    const fragment = window.location.hash.slice(1);
-    if (fragment && /^[\w-]{40,}$/.test(fragment)) {
-      sessionStorage.setItem('dragon-session', fragment);
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
-    const token = sessionStorage.getItem('dragon-session');
-    // oRPC clients are callable proxies; wrap them so React stores the client.
-    if (token) setClient(() => createClient(token));
-    else {
-      setLoading(false);
-      setError('请用后台启动时显示的完整链接打开管理页。');
-    }
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, []);
-  async function refresh() {
-    if (!client) return;
-    try {
-      setState(await client.state());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '无法连接本机后台');
-    } finally {
-      setLoading(false);
-    }
-  }
-  useEffect(() => {
-    if (!client) return;
-    let active = true;
-    const poll = async () => {
-      try {
-        const next = await client.state();
-        if (active) setState(next);
-      } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : '无法连接后台');
-      } finally {
-        if (active) setLoading(false);
+    } else {
+      const fragment = window.location.hash.slice(1);
+      if (fragment && /^[\w-]{40,}$/.test(fragment)) {
+        sessionStorage.setItem('dragon-session', fragment);
+        history.replaceState(null, '', window.location.pathname + window.location.search);
       }
-    };
-    void poll();
-    const interval = setInterval(() => void poll(), 5000);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, [client]);
-  async function perform(action: (client: Client) => Promise<unknown>, success = '') {
-    if (!client || busy) return false;
-    setBusy(true);
-    setError('');
-    setNotice('');
-    try {
-      await action(client);
-      await refresh();
-      setNotice(success);
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setNotice(''), 3500);
-      return true;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '操作失败');
-      return false;
-    } finally {
-      setBusy(false);
+      const token = sessionStorage.getItem('dragon-session');
+      if (token) store.getState().connect(createClient(token));
+      else store.setState({ loading: false, error: '请用后台启动时显示的完整链接打开管理页。' });
     }
-  }
-  return (
-    <Context.Provider
-      value={{
-        state,
-        client,
-        loading,
-        busy,
-        error,
-        notice,
-        refresh,
-        perform,
-        clearError: () => setError(''),
-      }}
-    >
-      {children}
-    </Context.Provider>
-  );
+    const poll = () => {
+      if (!store.getState().busy) void store.getState().refresh();
+    };
+    poll();
+    const interval = setInterval(poll, 5000);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('dragon-state', receive);
+      store.getState().disconnect();
+    };
+  }, [store]);
+  return <Context.Provider value={store}>{children}</Context.Provider>;
 }
-export function useDashboard() {
-  const context = useContext(Context);
-  if (!context) throw Error('缺少管理页上下文');
-  return context;
+function useDashboardStore() {
+  const store = useContext(Context);
+  if (!store) throw Error('缺少管理页上下文');
+  return store;
+}
+export function useDashboard<T>(selector: (state: DashboardState) => T) {
+  return useStore(useDashboardStore(), useShallow(selector));
 }
 export function useSettings() {
-  const { state, perform, busy } = useDashboard();
-  const [config, setConfig] = useState<Config | null>(null);
-  const [baseline, setBaseline] = useState('');
+  const dashboard = useDashboardStore();
+  const remoteConfig = useDashboard((s) => s.state?.config);
+  const busy = useDashboard((s) => s.busy);
+  const [store] = useState(() => createSettingsStore(dashboard));
+  const { config, baseline, setConfig, save, reset } = useStore(store);
   useEffect(() => {
-    if (
-      state &&
-      (!config || JSON.stringify(config) === baseline) &&
-      JSON.stringify(state.config) !== baseline
-    ) {
-      setConfig(structuredClone(state.config));
-      setBaseline(JSON.stringify(state.config));
-    }
-  }, [state, config, baseline]);
-  const dirty = !!config && JSON.stringify(config) !== baseline;
-  async function save() {
-    if (config && (await perform((c) => c.config(config), '已保存')))
-      setBaseline(JSON.stringify(config));
-  }
-  function reset() {
-    if (state) {
-      setConfig(structuredClone(state.config));
-      setBaseline(JSON.stringify(state.config));
-    }
-  }
-  return { config, setConfig, dirty, busy, save, reset };
+    if (remoteConfig) store.getState().receive(remoteConfig);
+  }, [remoteConfig, store]);
+  return {
+    config,
+    setConfig,
+    dirty: !!config && JSON.stringify(config) !== baseline,
+    busy,
+    save,
+    reset,
+  };
 }
 export function formatTime(value?: string) {
   return value

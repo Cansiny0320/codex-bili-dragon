@@ -1,3 +1,4 @@
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChevronRight, NotebookText, MessageSquare, Mail, PlayCircle, Link2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -8,7 +9,14 @@ import { Button } from '../components/ui/button';
 import type { Channel } from '@bili-dragon/runtime/types';
 export const Route = createFileRoute('/')({ component: Home });
 function Home() {
-  const { state, client, loading, busy, perform, refresh } = useDashboard();
+  const { state, client, loading, busy, perform, refresh } = useDashboard((s) => ({
+    state: s.state,
+    client: s.client,
+    loading: s.loading,
+    busy: s.busy,
+    perform: s.perform,
+    refresh: s.refresh,
+  }));
   const [channel, setChannel] = useState<Channel>('comments');
   const [account, setAccount] = useState<AdminState['account']>(null);
   const [connection, setConnection] = useState('检查中…');
@@ -71,57 +79,58 @@ function Home() {
           <SectionTitle to="/review">
             待我审核 {drafts.length > 0 && <b className="count-badge">{drafts.length}</b>}
           </SectionTitle>
-          <div className="tabs">
-            {(['comments', 'dm', 'live'] as const).map((c, i) => (
-              <button
-                key={c}
-                className={c === channel ? 'selected' : ''}
-                onClick={() => setChannel(c)}
-              >
-                {['评论', '私信', '直播弹幕'][i]}
-                <span>
-                  {
-                    drafts.filter((d) => state.inbox.find((e) => e.id === d.eventId)?.channel === c)
-                      .length
-                  }
-                </span>
-              </button>
-            ))}
-          </div>
-          {visible.length ? (
-            visible.map((d) => {
-              const e = state.inbox.find((x) => x.id === d.eventId);
-              return (
-                <article className="review-preview" key={d.id}>
-                  <div>
-                    <strong>{e?.title || e?.name || e?.uname || `UID ${e?.mid ?? '—'}`}</strong>
-                    <small>{formatTime(d.createdAt)}</small>
-                    <p>{d.text}</p>
-                  </div>
-                  <div className="row-actions">
-                    <Button
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={() => void perform((c) => c.reject({ id: d.id }))}
-                    >
-                      拒绝
-                    </Button>
-                    <Button
-                      disabled={busy || !e || !state.config.permissions[e.channel]}
-                      onClick={() => void perform((c) => c.approve({ id: d.id }))}
-                    >
-                      批准发送
-                    </Button>
-                  </div>
-                </article>
-              );
-            })
-          ) : (
-            <Empty>
-              暂无待审核的{channel === 'comments' ? '评论' : channel === 'dm' ? '私信' : '直播弹幕'}
-              。
-            </Empty>
-          )}
+          <Tabs value={channel} onValueChange={(value) => setChannel(value as Channel)}>
+            <TabsList variant="line" className="mb-3">
+              {(['comments', 'dm', 'live'] as const).map((c, i) => (
+                <TabsTrigger key={c} value={c}>
+                  {['评论', '私信', '直播弹幕'][i]}
+                  <span>
+                    {
+                      drafts.filter(
+                        (d) => state.inbox.find((e) => e.id === d.eventId)?.channel === c,
+                      ).length
+                    }
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value={channel}>
+              {visible.length ? (
+                visible.map((d) => {
+                  const e = state.inbox.find((x) => x.id === d.eventId);
+                  return (
+                    <article className="review-preview" key={d.id}>
+                      <div>
+                        <strong>{e?.title || e?.name || e?.uname || `UID ${e?.mid ?? '—'}`}</strong>
+                        <small>{formatTime(d.createdAt)}</small>
+                        <p>{d.text}</p>
+                      </div>
+                      <div className="row-actions">
+                        <Button
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => void perform((c) => c.reject({ id: d.id }))}
+                        >
+                          拒绝
+                        </Button>
+                        <Button
+                          disabled={busy || !e || !state.config.permissions[e.channel]}
+                          onClick={() => void perform((c) => c.approve({ id: d.id }))}
+                        >
+                          批准发送
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <Empty>
+                  暂无待审核的
+                  {channel === 'comments' ? '评论' : channel === 'dm' ? '私信' : '直播弹幕'}。
+                </Empty>
+              )}
+            </TabsContent>
+          </Tabs>
         </Panel>
         <Panel>
           <SectionTitle to="/diary">最近的日记</SectionTitle>

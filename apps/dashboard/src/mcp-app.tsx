@@ -1,3 +1,4 @@
+import { version } from '../package.json';
 import { App, applyHostStyleVariables } from '@modelcontextprotocol/ext-apps';
 import { createRoot } from 'react-dom/client';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
@@ -6,11 +7,7 @@ import { createAppClient } from './lib/app-client';
 import type { AdminState } from '@bili-dragon/runtime/api';
 import './styles.css';
 
-const app = new App(
-  { name: 'B 站小白龙', version: '0.3.1' },
-  {},
-  { autoResize: false, strict: true },
-);
+const app = new App({ name: 'B 站小白龙', version }, {}, { autoResize: false, strict: true });
 let initialState: AdminState | undefined;
 app.ontoolresult = (result) => {
   if (

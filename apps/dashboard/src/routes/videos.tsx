@@ -1,3 +1,6 @@
+import { Button } from '../components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components/ui/collapsible';
 import { createFileRoute } from '@tanstack/react-router';
 import { Search, FileText, Image, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
@@ -10,7 +13,7 @@ export const Route = createFileRoute('/videos')({
   component: Videos,
 });
 function Videos() {
-  const { state, loading } = useDashboard();
+  const { state, loading } = useDashboard((s) => ({ state: s.state, loading: s.loading }));
   const { bv } = Route.useSearch();
   const [query, setQuery] = useState(''),
     [selected, setSelected] = useState(bv ?? ''),
@@ -39,9 +42,13 @@ function Videos() {
         </label>
         {filtered.length ? (
           filtered.map((v) => (
-            <button
+            <Button
+              variant="ghost"
               key={v.bvid}
-              className={'video-list-item ' + (v.bvid === video?.bvid ? 'selected' : '')}
+              className={
+                'video-list-item h-auto justify-start whitespace-normal ' +
+                (v.bvid === video?.bvid ? 'selected' : '')
+              }
               onClick={() => setSelected(v.bvid)}
             >
               <Cover video={v} />
@@ -62,7 +69,7 @@ function Videos() {
                   {v.actions.includes('debrief') && <span>简报</span>}
                 </div>
               </div>
-            </button>
+            </Button>
           ))
         ) : (
           <Empty>{query ? '没有匹配的观看记录。' : '小白龙还没出门逛过。'}</Empty>
@@ -81,31 +88,33 @@ function Videos() {
             </Panel>
             <Panel className="materials-panel">
               <h2>小白龙读到的内容</h2>
-              <div className="tabs">
-                {actions.map(([key, label]) => (
-                  <button
-                    key={key}
-                    className={key === material ? 'selected' : ''}
-                    onClick={() => setMaterial(key)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {video.materials?.[material] ? (
-                <pre className="material-text">{video.materials[material]}</pre>
-              ) : (
-                <Empty>
-                  {video.actions.includes(material)
-                    ? '这条历史记录未保存素材正文。'
-                    : '尚未读取这类素材。'}
-                </Empty>
-              )}
+              <Tabs value={material} onValueChange={(value) => setMaterial(String(value))}>
+                <TabsList variant="line" className="mb-3">
+                  {actions.map(([key, label]) => (
+                    <TabsTrigger key={key} value={key}>
+                      {label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <TabsContent value={material}>
+                  {video.materials?.[material] ? (
+                    <pre className="material-text">{video.materials[material]}</pre>
+                  ) : (
+                    <Empty>
+                      {video.actions.includes(material)
+                        ? '这条历史记录未保存素材正文。'
+                        : '尚未读取这类素材。'}
+                    </Empty>
+                  )}
+                </TabsContent>
+              </Tabs>
               {video.materials?.debrief && (
-                <details>
-                  <summary>查看简报</summary>
-                  <pre className="material-text">{video.materials.debrief}</pre>
-                </details>
+                <Collapsible>
+                  <CollapsibleTrigger className="disclosure-trigger">查看简报</CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <pre className="material-text">{video.materials.debrief}</pre>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
             </Panel>
           </>

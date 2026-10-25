@@ -1,3 +1,4 @@
+import { Textarea } from '../components/ui/textarea';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { X, Plus, NotebookText } from 'lucide-react';
@@ -37,9 +38,13 @@ function KeywordEditor({
         {values.map((v) => (
           <span key={v}>
             {v}
-            <button aria-label={'移除' + v} onClick={() => onChange(values.filter((x) => x !== v))}>
+            <Button
+              variant="ghost"
+              aria-label={'移除' + v}
+              onClick={() => onChange(values.filter((x) => x !== v))}
+            >
               <X size={14} />
-            </button>
+            </Button>
           </span>
         ))}
       </div>
@@ -67,7 +72,7 @@ function KeywordEditor({
 function Personality() {
   const settings = useSettings();
   const { config, setConfig } = settings;
-  const { state } = useDashboard();
+  const { state } = useDashboard((s) => ({ state: s.state }));
   if (!config) return <Loading />;
   const p = config.persona;
   return (
@@ -93,7 +98,7 @@ function Personality() {
             </Field>
           ))}
           <Field label="性格描述">
-            <textarea
+            <Textarea
               value={p.body}
               maxLength={20000}
               rows={6}

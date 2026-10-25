@@ -1,4 +1,4 @@
-import { useId, type ReactNode, type InputHTMLAttributes } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
   ChevronRight,
@@ -11,10 +11,16 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
+import { Card } from './ui/card';
+export { Input } from './ui/input';
 import { useDashboard, type Video } from '../lib/state';
 
 export function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={'panel ' + className}>{children}</section>;
+  return (
+    <Card className={'panel block flex-row gap-0 overflow-visible p-5 ' + className}>
+      {children}
+    </Card>
+  );
 }
 export function SectionTitle({
   children,
@@ -70,9 +76,6 @@ export function Field({
     </label>
   );
 }
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={'input ' + (props.className ?? '')} />;
-}
 export function Toggle({
   label,
   checked,
@@ -120,7 +123,11 @@ export function SaveBar({
   );
 }
 export function StatusBar() {
-  const { state, busy, perform } = useDashboard();
+  const { state, busy, perform } = useDashboard((s) => ({
+    state: s.state,
+    busy: s.busy,
+    perform: s.perform,
+  }));
   if (!state) return null;
   const running = state.runtime.state === 'running',
     enabled = state.config.enabled;

@@ -191,6 +191,29 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
         () => document.documentElement.scrollWidth > innerWidth + 1,
       );
       assert.equal(overflow, false, '页面横向溢出：' + name);
+      assert.ok(
+        await p.locator('.review-list-item').evaluateAll((items) =>
+          items.every((item) => {
+            const heading = item.querySelector('.review-row-heading');
+            const message = item.querySelector('p');
+            return (
+              !heading ||
+              !message ||
+              heading.getBoundingClientRect().bottom <= message.getBoundingClientRect().top
+            );
+          }),
+        ),
+        '审核消息正文应在标题下方：' + name,
+      );
+      assert.ok(
+        await p.locator('[data-slot="tabs"]').evaluateAll((tabs) =>
+          tabs.every((tab) => {
+            const style = getComputedStyle(tab);
+            return style.display !== 'flex' || style.flexDirection === 'column';
+          }),
+        ),
+        '水平选项卡应在内容上方：' + name,
+      );
       await p.screenshot({
         path: path.join(output, name + '.png'),
         fullPage: true,
@@ -201,7 +224,34 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
       await page.goto(http.origin + route);
       await checkLayout(page, (route.slice(1) || 'home') + '-desktop');
     }
+    await page.goto(http.origin + '/videos');
+    await page.getByRole('tab', { name: '字幕', exact: true }).focus();
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter');
+    assert.equal(
+      await page.getByRole('tab', { name: '画面', exact: true }).getAttribute('aria-selected'),
+      'true',
+    );
+    await page.goto(http.origin + '/schedule');
+    const windowCheckbox = page.getByRole('checkbox', { name: '启用时段1', exact: true });
+    await windowCheckbox.uncheck();
+    assert.equal(await windowCheckbox.isChecked(), false);
+    await page.getByRole('button', { name: '取消', exact: true }).click();
+    assert.equal(await windowCheckbox.isChecked(), true);
     await page.goto(http.origin + '/personality');
+    await page.getByLabel('小白龙的名字', { exact: true }).fill('测试小白龙');
+    service.saveConfig({
+      ...service.config(),
+      persona: { ...service.config().persona, name: '后台更新的名字' },
+    });
+    // 等待实际轮询响应，而不是刷新页面；未保存输入必须保留。
+    await page.waitForResponse((response) => response.url().includes('/rpc/state'));
+    assert.equal(await page.getByLabel('小白龙的名字', { exact: true }).inputValue(), '测试小白龙');
+    await page.getByRole('button', { name: '取消', exact: true }).click();
+    assert.equal(
+      await page.getByLabel('小白龙的名字', { exact: true }).inputValue(),
+      '后台更新的名字',
+    );
     await page.getByLabel('小白龙的名字', { exact: true }).fill('测试小白龙');
     await page.getByRole('button', { name: '添加关键词' }).first().click();
     await page.getByLabel('喜欢的内容关键词新增关键词').fill('天文');
@@ -272,7 +322,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     await page.getByLabel('搜索视频标题或 BV 号').fill('星星');
     assert.equal(await page.locator('.video-list-item').count(), 1);
     await page.goto(http.origin + '/diary');
-    await page.getByRole('button', { name: '内心日记', exact: true }).click();
+    await page.getByRole('tab', { name: '内心日记', exact: true }).click();
     await page.locator('.diary-prose').getByText('内心记录：', { exact: false }).waitFor();
     await page.getByRole('button', { name: '上个月' }).click();
     await page.getByText('这个月还没有日记。').waitFor();

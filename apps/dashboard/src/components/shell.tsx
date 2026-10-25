@@ -1,3 +1,4 @@
+import { Button } from './ui/button';
 import type { ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import {
@@ -26,16 +27,21 @@ const items = [
   ['/account', '账号连接', Link2],
 ] as const;
 export function Shell({ children }: { children: ReactNode }) {
-  const { state, error, notice, clearError } = useDashboard();
+  const { state, error, notice, clearError } = useDashboard((s) => ({
+    state: s.state,
+    error: s.error,
+    notice: s.notice,
+    clearError: s.clearError,
+  }));
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const count = state?.drafts.filter((d) => d.state === 'draft').length ?? 0;
   return (
     <div className="app-shell">
       <header className="mobile-header">
-        <button aria-label="打开导航" onClick={() => setOpen(!open)}>
+        <Button variant="ghost" aria-label="打开导航" onClick={() => setOpen(!open)}>
           <Menu />
-        </button>
+        </Button>
         <span className="mobile-brand">
           <img src={dragonIcon} alt="" />
           <strong>B 站小白龙</strong>
@@ -62,16 +68,21 @@ export function Shell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
       {open && (
-        <button className="nav-backdrop" aria-label="关闭导航" onClick={() => setOpen(false)} />
+        <Button
+          variant="ghost"
+          className="nav-backdrop"
+          aria-label="关闭导航"
+          onClick={() => setOpen(false)}
+        />
       )}
       <main className="main-content">
         {error && (
           <div className="error-banner" role="alert">
             <AlertCircle size={20} />
             <span>{error}</span>
-            <button aria-label="关闭提示" onClick={clearError}>
+            <Button variant="ghost" aria-label="关闭提示" onClick={clearError}>
               <X size={18} />
-            </button>
+            </Button>
           </div>
         )}
         {notice && (

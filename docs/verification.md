@@ -93,3 +93,12 @@
 真实互动验证使用本地 0.6.1 安装包；0.6.2 补正消息状态标题、主人昵称字段用途与日记表达，发送路径保持一致。最新安装包检查、最终安装状态和评论自动回复结果待收尾后记录。
 
 最终宿主核验：Codex 的旧插件连接在升级后一度继续读取已移除的 0.4.0 / 0.6.1 缓存页面，导致管理页刷新失败。重新加载后，实际宿主的 10 个小白龙 MCP 连接全部切换到 0.6.2；dragon_open 成功，原生 MCP App 已显示新版文案、真实账号和 5 个视频的标题与封面。dragon_control status 返回 running=true、version=0.6.2；未重启 Codex。
+
+## v0.7.0 组件、状态与分发
+
+- 管理页使用 shadcn base-nova 所需组件与 Zustand；保留现有页面结构。修复 Tabs 横向布局属性与当前 Base UI 的不匹配，以及审核列表按钮默认 flex 导致的内容并排。
+- 51 项离线测试通过，覆盖独立状态实例、旧请求失效、重复操作、草稿在轮询和保存期间保留，以及市场产物校验。
+- HTTP / oRPC 与 MCP App 两套 headless UI 检查通过，包含桌面和 390px 页面、Tabs 键盘操作、卡片和审核行布局、Checkbox、设置草稿与取消；人工检查对应截图。没有发送真实桌面输入。
+- pnpm check 与 pnpm build 通过。README 按产品介绍收紧，开发与发布命令移至 CONTRIBUTING.md。
+- Release ZIP 与 GitHub 市场由同一预构建包生成；市场目录只复制 bundle.json 中通过 SHA-256 校验的文件，不包含个人数据或 node_modules。发布后的远程检查另见该版本 Release。
+- 最终 ZIP 在仓库外、不安装 node_modules 的情况下通过 MCP、后台、网页资源和停止流程检查。Codex 实际 app-server 的 plugin/read 成功解析生成的市场，识别 1 个 MCP 服务、2 个技能与 setup 引导；未替换正在使用的本机安装。

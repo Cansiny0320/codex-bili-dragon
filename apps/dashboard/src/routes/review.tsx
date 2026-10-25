@@ -1,3 +1,5 @@
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Clock, AlertCircle, HelpCircle } from 'lucide-react';
@@ -7,7 +9,12 @@ import { Panel, Empty, Loading } from '../components/common';
 import { Button } from '../components/ui/button';
 export const Route = createFileRoute('/review')({ component: Review });
 function Review() {
-  const { state, loading, busy, perform } = useDashboard();
+  const { state, loading, busy, perform } = useDashboard((s) => ({
+    state: s.state,
+    loading: s.loading,
+    busy: s.busy,
+    perform: s.perform,
+  }));
   const [channel, setChannel] = useState<Channel>('comments'),
     [selected, setSelected] = useState(''),
     [showAll, setAll] = useState(false);
@@ -29,7 +36,9 @@ function Review() {
     'needs-review': '待核查',
   };
   return (
-    <div
+    <Tabs
+      value={channel}
+      onValueChange={(value) => setChannel(value as Channel)}
       className={
         (draft || ops.length || issues.length ? 'split-page' : 'page-stack') + ' review-page'
       }
@@ -37,13 +46,9 @@ function Review() {
       <Panel className="list-panel">
         <h1>待我审核</h1>
         <div className="review-filters">
-          <div className="tabs">
+          <TabsList variant="line">
             {(['comments', 'dm', 'live'] as const).map((c, i) => (
-              <button
-                key={c}
-                className={channel === c ? 'selected' : ''}
-                onClick={() => setChannel(c)}
-              >
+              <TabsTrigger key={c} value={c}>
                 {['评论', '私信', '直播弹幕'][i]}
                 <span>
                   {
@@ -54,39 +59,45 @@ function Review() {
                     ).length
                   }
                 </span>
-              </button>
+              </TabsTrigger>
             ))}
-          </div>
-          <select
+          </TabsList>
+          <NativeSelect
             aria-label="审核筛选"
             value={String(showAll)}
             onChange={(e) => setAll(e.target.value === 'true')}
           >
-            <option value="false">待处理</option>
-            <option value="true">全部记录</option>
-          </select>
+            <NativeSelectOption value="false">待处理</NativeSelectOption>
+            <NativeSelectOption value="true">全部记录</NativeSelectOption>
+          </NativeSelect>
         </div>
-        {drafts.length ? (
-          drafts.map((d) => {
-            const e = state.inbox.find((x) => x.id === d.eventId);
-            return (
-              <button
-                key={d.id}
-                className={'review-list-item ' + (draft?.id === d.id ? 'selected' : '')}
-                onClick={() => setSelected(d.id)}
-              >
-                <div className="review-row-heading">
-                  <strong>{e?.title || e?.name || e?.uname || `UID ${e?.mid ?? '—'}`}</strong>
-                  <small>{labels[d.state]}</small>
-                </div>
-                <span className="muted">{formatTime(d.createdAt)}</span>
-                <p>{e?.text}</p>
-              </button>
-            );
-          })
-        ) : (
-          <Empty>暂无待审核的消息。</Empty>
-        )}
+        <TabsContent value={channel}>
+          {drafts.length ? (
+            drafts.map((d) => {
+              const e = state.inbox.find((x) => x.id === d.eventId);
+              return (
+                <Button
+                  variant="ghost"
+                  key={d.id}
+                  className={
+                    'review-list-item block h-auto whitespace-normal ' +
+                    (draft?.id === d.id ? 'selected' : '')
+                  }
+                  onClick={() => setSelected(d.id)}
+                >
+                  <div className="review-row-heading">
+                    <strong>{e?.title || e?.name || e?.uname || `UID ${e?.mid ?? '—'}`}</strong>
+                    <small>{labels[d.state]}</small>
+                  </div>
+                  <span className="muted">{formatTime(d.createdAt)}</span>
+                  <p>{e?.text}</p>
+                </Button>
+              );
+            })
+          ) : (
+            <Empty>暂无待审核的消息。</Empty>
+          )}
+        </TabsContent>
       </Panel>
       {(draft || ops.length > 0 || issues.length > 0) && (
         <Panel className="review-detail">
@@ -170,6 +181,6 @@ function Review() {
           )}
         </Panel>
       )}
-    </div>
+    </Tabs>
   );
 }

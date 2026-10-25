@@ -11,7 +11,10 @@
     "jsx": "react-jsx",
     "types": ["node"],
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": ["./apps/dashboard/src/*"]
+    }
   },
   "include": [
     "packages/**/*.ts",

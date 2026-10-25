@@ -1,5 +1,8 @@
 name: Checks
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 permissions:
   contents: read
 jobs:
@@ -22,6 +25,7 @@ jobs:
       - run: pnpm check
       - run: pnpm package
       - run: pnpm test:package
+      - run: pnpm package:marketplace
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 24
         run: pnpm exec playwright install --with-deps chromium
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 24

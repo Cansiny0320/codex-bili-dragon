@@ -1,3 +1,4 @@
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './ui/collapsible';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Eye, EyeOff, RefreshCw } from 'lucide-react';
 import type { ApiRouter } from '@bili-dragon/runtime/api';
@@ -12,7 +13,13 @@ type Account = NonNullable<Awaited<ReturnType<Client['checkLogin']>>['account']>
 type Phase = 'loading' | 'waiting' | 'scanned' | 'connected' | 'expired' | 'error';
 
 export function BiliLogin() {
-  const { client, state, busy, perform, refresh } = useDashboard();
+  const { client, state, busy, perform, refresh } = useDashboard((s) => ({
+    client: s.client,
+    state: s.state,
+    busy: s.busy,
+    perform: s.perform,
+    refresh: s.refresh,
+  }));
   const [phase, setPhase] = useState<Phase>('loading');
   const [qr, setQr] = useState<Qr | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
@@ -193,45 +200,48 @@ export function BiliLogin() {
           {savedNotice}
         </p>
       )}
-      <details className="manual-login">
-        <summary>高级选项</summary>
-        <div className="section-heading">
-          <h3>手动 Cookie</h3>
-          <button
-            className="icon-button"
-            aria-label={revealed ? '隐藏输入' : '显示输入'}
-            onClick={() => setRevealed(!revealed)}
-          >
-            {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-        {(
-          [
-            ['sessdata', 'SESSDATA'],
-            ['bili_jct', 'bili_jct'],
-            ['buvid3', 'buvid3'],
-          ] as const
-        ).map(([key, label]) => (
-          <Field key={key} label={label}>
-            <Input
-              type={revealed ? 'text' : 'password'}
-              autoComplete="off"
-              value={credentials[key]}
-              placeholder={state?.hasCredentials ? '已保存；填写以替换' : ''}
-              onChange={(e) => setCredentials({ ...credentials, [key]: e.target.value })}
-            />
-          </Field>
-        ))}
-        <p className="muted">在 B 站网页端登录后，从浏览器开发者工具的 Cookie 中复制这三个值。</p>
-        <div className="save-bar">
-          <Button
-            disabled={busy || Object.values(credentials).some((value) => !value.trim())}
-            onClick={() => void saveCredentials()}
-          >
-            保存凭据
-          </Button>
-        </div>
-      </details>
+      <Collapsible className="manual-login">
+        <CollapsibleTrigger className="disclosure-trigger">高级选项</CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="section-heading">
+            <h3>手动 Cookie</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={revealed ? '隐藏输入' : '显示输入'}
+              onClick={() => setRevealed(!revealed)}
+            >
+              {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
+            </Button>
+          </div>
+          {(
+            [
+              ['sessdata', 'SESSDATA'],
+              ['bili_jct', 'bili_jct'],
+              ['buvid3', 'buvid3'],
+            ] as const
+          ).map(([key, label]) => (
+            <Field key={key} label={label}>
+              <Input
+                type={revealed ? 'text' : 'password'}
+                autoComplete="off"
+                value={credentials[key]}
+                placeholder={state?.hasCredentials ? '已保存；填写以替换' : ''}
+                onChange={(e) => setCredentials({ ...credentials, [key]: e.target.value })}
+              />
+            </Field>
+          ))}
+          <p className="muted">在 B 站网页端登录后，从浏览器开发者工具的 Cookie 中复制这三个值。</p>
+          <div className="save-bar">
+            <Button
+              disabled={busy || Object.values(credentials).some((value) => !value.trim())}
+              onClick={() => void saveCredentials()}
+            >
+              保存凭据
+            </Button>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </>
   );
 }
