@@ -15,6 +15,7 @@ import { version } from './paths.js';
 export type DaemonControl = Pick<Daemon, 'pause' | 'tick' | 'error'>;
 export function createActions(service: DragonService, daemon: DaemonControl) {
   return {
+    models: () => service.models(),
     activity: (input: unknown) => service.activity.list(activityInput.parse(input)),
     material: (input: unknown) => {
       const value = materialInput.parse(input);
@@ -81,6 +82,7 @@ export function createApi(service: DragonService, daemon: DaemonControl) {
   const id = z.object({ id: z.string().min(1) }).strict();
   const loginHandle = z.object({ handle: z.string().uuid() }).strict();
   return {
+    models: base.handler(() => actions.models()),
     activity: base.input(activityInput).handler(({ input }) => actions.activity(input)),
     material: base.input(materialInput).handler(({ input }) => actions.material(input)),
     state: base.handler(() => actions.state()),

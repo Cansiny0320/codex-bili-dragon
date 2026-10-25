@@ -24,6 +24,7 @@ export const appUri = 'ui://bili-dragon/dashboard';
 const empty = z.object({}).strict();
 const id = z.object({ id: z.string().min(1).max(200) }).strict();
 const adminSchemas = {
+  models: empty,
   activity: activityInput,
   material: materialInput,
   state: empty,
@@ -41,6 +42,7 @@ const adminSchemas = {
 };
 type AdminAction = keyof typeof adminSchemas;
 const adminNames: Record<AdminAction, string> = {
+  models: '读取可用模型',
   activity: '查看行动记录',
   material: '查看已读素材',
   state: '读取管理页',
@@ -136,7 +138,7 @@ export function createDragonMcp(dir = dataRoot) {
       description: '管理页专用：' + adminNames[action as AdminAction],
       inputSchema: z.toJSONSchema(schema) as Tool['inputSchema'],
       annotations: {
-        readOnlyHint: ['state', 'activity', 'material'].includes(action),
+        readOnlyHint: ['state', 'activity', 'material', 'models'].includes(action),
         destructiveHint: action === 'approve',
         openWorldHint: ['approve', 'checkLogin', 'run', 'loginStart', 'loginPoll'].includes(action),
       },

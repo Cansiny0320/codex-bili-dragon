@@ -1,14 +1,16 @@
 import { _ as errorCode, g as exclusive, h as atomic, v as errorMessage } from "./runtime-BQhNtnnM.js";
-import { i as vendor } from "./paths-5G6hh4eK.js";
-import { _ as string$1, a as array, b as toJSONSchema, f as number, n as ZodString, p as object, r as _enum, u as literal, v as union, x as _coercedString, y as unknown } from "./schemas-BWrad36H.js";
-import { a as validateConfig, i as readConfig, l as DateTime, t as assertChannel } from "./policy-DjEN7pXP.js";
+import { a as version, i as vendor } from "./paths-5G6hh4eK.js";
+import { _ as string$1, a as array, b as toJSONSchema, f as number, g as record, n as ZodString, o as boolean, p as object, r as _enum, u as literal, v as union, x as _coercedString, y as unknown } from "./schemas-BWrad36H.js";
+import { a as validateConfig, c as taskPrompt, i as readConfig, l as DateTime, o as baseInstructions, s as developerInstructions, t as assertChannel } from "./policy-DIRs_RcG.js";
 import { t as ensureFfmpeg } from "./ffmpeg-MQ-tQqLl.js";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { execFile } from "node:child_process";
+import { execFile, execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
-import crypto, { randomUUID } from "node:crypto";
+import crypto, { createHash, randomUUID } from "node:crypto";
 import { AsyncLocalStorage } from "node:async_hooks";
+import readline from "node:readline";
+import { EventEmitter } from "node:events";
 // \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -5238,6 +5240,543 @@ function materialView(store, bvid, kind) {
 		};
 	}
 }
+// src/models.ts
+const modelSchema = object({
+	id: string$1(),
+	model: string$1().min(1),
+	displayName: string$1(),
+	hidden: boolean(),
+	isDefault: boolean(),
+	defaultReasoningEffort: string$1(),
+	supportedReasoningEfforts: array(object({
+		reasoningEffort: string$1(),
+		description: string$1()
+	}))
+});
+const modelPage = object({
+	data: array(modelSchema),
+	nextCursor: string$1().nullish()
+});
+const modelDefaults = object({
+	model: string$1().nullish(),
+	model_reasoning_effort: string$1().nullish()
+});
+async function readModelCatalog(rpc, cwd, loadedConfig) {
+	const config = loadedConfig ?? object({ config: modelDefaults }).parse(await rpc.request("config/read", {
+		includeLayers: false,
+		cwd
+	})).config;
+	const models = [];
+	const cursors = /* @__PURE__ */ new Set();
+	let cursor;
+	do {
+		const page = modelPage.parse(await rpc.request("model/list", {
+			limit: 100,
+			includeHidden: true,
+			...cursor ? { cursor } : {}
+		}));
+		models.push(...page.data);
+		cursor = page.nextCursor;
+		if (cursor) {
+			if (cursors.has(cursor)) throw Error("Codex 模型目录返回重复分页游标");
+			cursors.add(cursor);
+		}
+	} while (cursor);
+	const defaultModel = config.model || models.find((model) => model.isDefault)?.model || "";
+	const entry = models.find((model) => model.model === defaultModel);
+	return {
+		models,
+		defaultModel,
+		defaultReasoningEffort: config.model_reasoning_effort || entry?.defaultReasoningEffort || ""
+	};
+}
+function resolveModelSelection(catalog, selection) {
+	const model = selection.model || catalog.defaultModel;
+	const entry = catalog.models.find((item) => item.model === model);
+	if (!entry) throw Error("所选 Codex 模型不可用：" + (model || "默认模型"));
+	const effort = selection.reasoningEffort || (model === catalog.defaultModel ? catalog.defaultReasoningEffort : entry.defaultReasoningEffort);
+	if (effort && !entry.supportedReasoningEfforts.some((item) => item.reasoningEffort === effort)) throw Error(`模型 ${model} 不支持思考深度 ${effort}，请重新选择。`);
+	return {
+		model,
+		effort
+	};
+}
+var ModelCatalogCache = class {
+	ttl;
+	entries = /* @__PURE__ */ new Map();
+	constructor(ttl = 3e5) {
+		this.ttl = ttl;
+	}
+	get(key, load, now = Date.now()) {
+		const existing = this.entries.get(key);
+		if (existing && existing.expires > now) return existing.pending;
+		const pending = load().catch((error) => {
+			if (this.entries.get(key)?.pending === pending) this.entries.delete(key);
+			throw error;
+		});
+		this.entries.set(key, {
+			expires: now + this.ttl,
+			pending
+		});
+		return pending;
+	}
+};
+// src/codex.ts
+const accountResponse = object({ account: object({ type: string$1() }).nullable() });
+const configResponse = object({ config: object({
+	model: string$1().nullish(),
+	model_reasoning_effort: string$1().nullish(),
+	mcp_servers: record(string$1(), unknown()).optional()
+}).optional() });
+const threadResponse = object({ thread: object({
+	id: string$1(),
+	status: object({ type: string$1() }).optional()
+}) });
+const turnSchema = object({
+	id: string$1(),
+	status: string$1(),
+	error: object({ message: string$1() }).nullish()
+});
+const toolCallSchema = object({
+	threadId: string$1(),
+	tool: string$1(),
+	arguments: unknown()
+});
+function findCodex(override = "") {
+	if (override) return override;
+	if (process.env.BILI_DRAGON_CODEX) return process.env.BILI_DRAGON_CODEX;
+	if (process.platform === "win32" && process.env.LOCALAPPDATA) {
+		const bin = path.join(process.env.LOCALAPPDATA, "OpenAI/Codex/bin");
+		if (fs.existsSync(bin)) {
+			const candidates = fs.readdirSync(bin, { withFileTypes: true }).filter((x) => x.isDirectory()).map((x) => path.join(bin, x.name, "codex.exe")).filter((x) => fs.existsSync(x)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+			if (candidates[0]) return candidates[0];
+			if (fs.existsSync(path.join(bin, "codex.exe"))) return path.join(bin, "codex.exe");
+		}
+	}
+	if (process.platform === "win32") try {
+		return execFileSync("where.exe", ["codex.exe"], {
+			encoding: "utf8",
+			windowsHide: true
+		}).trim().split(/\r?\n/)[0];
+	} catch {
+		throw Error("未找到兼容 Codex 可执行文件；请设置 BILI_DRAGON_CODEX 或安装 Codex 桌面版。");
+	}
+	return "codex";
+}
+const disabledFeatures = [
+	"shell_tool",
+	"unified_exec",
+	"apply_patch_freeform",
+	"js_repl",
+	"apps",
+	"connectors",
+	"plugins",
+	"remote_plugin",
+	"computer_use",
+	"browser_use",
+	"browser_use_external",
+	"in_app_browser",
+	"image_generation",
+	"imagegenext",
+	"multi_agent",
+	"multi_agent_v2",
+	"collab",
+	"hooks",
+	"codex_hooks",
+	"plugin_hooks",
+	"memories",
+	"memory_tool",
+	"request_permissions",
+	"request_permissions_tool",
+	"stable_environment_tools",
+	"workspace_dependencies",
+	"skill_search",
+	"view_image"
+];
+const isolatedConfig = () => Object.fromEntries([
+	...disabledFeatures.map((k) => ["features." + k, false]),
+	["features.code_mode", true],
+	["features.code_mode_host", true],
+	["features.skip_host_skill_discovery", true],
+	["web_search", "disabled"],
+	["agents.enabled", false]
+]);
+var RpcClient = class extends EventEmitter {
+	child;
+	timeout;
+	pending = /* @__PURE__ */ new Map();
+	nextId = 1;
+	closed = false;
+	stderr = "";
+	constructor(child, { timeout = 3e4 } = {}) {
+		super();
+		this.child = child;
+		this.timeout = timeout;
+		this.pending = /* @__PURE__ */ new Map();
+		this.nextId = 1;
+		this.closed = false;
+		this.stderr = "";
+		child.stderr?.on("data", (b) => {
+			this.stderr = (this.stderr + b).slice(-2e3);
+		});
+		readline.createInterface({ input: child.stdout }).on("line", (line) => {
+			let m;
+			try {
+				m = JSON.parse(line);
+			} catch {
+				return;
+			}
+			if (m.method) this.emit("message", m);
+			else {
+				const p = typeof m.id === "number" ? this.pending.get(m.id) : void 0;
+				if (p) {
+					clearTimeout(p.timer);
+					this.pending.delete(m.id);
+					if (m.error) p.reject(Error(m.error.message));
+					else p.resolve(m.result);
+				}
+			}
+		});
+		child.on("error", (e) => this.fail(e));
+		child.on("exit", () => this.fail(Error("Codex app-server 已退出；请运行 doctor 检查版本和配置。")));
+	}
+	fail(e) {
+		if (this.closed) return;
+		this.closed = true;
+		for (const p of this.pending.values()) {
+			clearTimeout(p.timer);
+			p.reject(e);
+		}
+		this.pending.clear();
+		this.emit("closed", e);
+	}
+	write(m) {
+		if (this.closed) throw Error("Codex 连接已关闭");
+		this.child.stdin.write(JSON.stringify(m) + "\n");
+	}
+	request(method, params) {
+		return new Promise((resolve, reject) => {
+			const id = this.nextId++;
+			const timer = setTimeout(() => {
+				this.pending.delete(id);
+				reject(Error("Codex 请求超时：" + method));
+			}, this.timeout);
+			this.pending.set(id, {
+				resolve,
+				reject,
+				timer
+			});
+			try {
+				this.write({
+					id,
+					method,
+					params
+				});
+			} catch (e) {
+				clearTimeout(timer);
+				this.pending.delete(id);
+				reject(e);
+			}
+		});
+	}
+	notify(method, params = {}) {
+		this.write({
+			method,
+			params
+		});
+	}
+	close() {
+		this.fail(Error("连接已关闭"));
+		this.child.kill();
+	}
+};
+async function connectCodex(executable, cwd) {
+	const args = ["app-server", ...Object.entries(isolatedConfig()).flatMap(([k, v]) => ["-c", k + "=" + JSON.stringify(v)])];
+	const env = { ...process.env };
+	for (const key of [
+		"CODEX_THREAD_ID",
+		"CODEX_SESSION_ID",
+		"CODEX_TOOL_CALL_ID",
+		"CODEX_TASK_WORKSPACE_VERIFYING_IDENTITY",
+		"CODEX_APP_TOOLS_PIPE_PATH",
+		"CODEX_PERMISSION_PROFILE",
+		"CODEX_INTERNAL_ORIGINATOR_OVERRIDE"
+	]) delete env[key];
+	const rpc = new RpcClient(spawn(executable, args, {
+		cwd,
+		env,
+		windowsHide: true,
+		stdio: [
+			"pipe",
+			"pipe",
+			"pipe"
+		]
+	}));
+	try {
+		await rpc.request("initialize", {
+			clientInfo: {
+				name: "codex_bili_dragon",
+				title: "B 站小白龙",
+				version
+			},
+			capabilities: { experimentalApi: true }
+		});
+		rpc.notify("initialized");
+		return rpc;
+	} catch (e) {
+		rpc.close();
+		throw Error("Codex 初始化失败：" + errorMessage(e));
+	}
+}
+var CodexSession = class {
+	service;
+	connector;
+	rpc = null;
+	threadId = null;
+	turnId = null;
+	busy = false;
+	completions = /* @__PURE__ */ new Map();
+	finalMessages = /* @__PURE__ */ new Map();
+	generation = 0;
+	cwd = "";
+	tools = [];
+	currentJob = null;
+	constructor(service, connector = connectCodex) {
+		this.service = service;
+		this.connector = connector;
+		this.rpc = null;
+		this.threadId = null;
+		this.busy = false;
+		this.completions = /* @__PURE__ */ new Map();
+		this.generation = 0;
+	}
+	async open(c = this.service.config()) {
+		if (this.rpc && !this.rpc.closed) return resolveModelSelection(await readModelCatalog(this.rpc, this.cwd), c);
+		const cwd = path.join(this.service.store.dir, "workspace");
+		fs.mkdirSync(cwd, { recursive: true });
+		this.cwd = cwd;
+		const generation = this.generation;
+		const rpc = await this.connector(findCodex(c.codexPath), cwd);
+		if (generation !== this.generation) {
+			rpc.close();
+			throw Error("会话已暂停，未启动新回合");
+		}
+		this.rpc = rpc;
+		this.tools = catalog(this.service, {
+			recentHistory: true,
+			browseJobId: () => this.currentJob?.type === "browse" ? this.currentJob.id : void 0,
+			activityContext: () => ({
+				source: this.currentJob?.payload.manual ? "manual" : "autonomous",
+				jobId: this.currentJob?.id
+			})
+		});
+		const toolSignature = createHash("sha256").update(JSON.stringify(this.tools.map(({ name, inputSchema }) => ({
+			name,
+			inputSchema
+		})))).digest("hex");
+		this.rpc.on("message", (m) => {
+			this.handle(m).catch((e) => {
+				this.service.store.write("codex-error", { message: errorMessage(e) });
+			});
+		});
+		if (!accountResponse.parse(await this.rpc.request("account/read", { refreshToken: false })).account) throw Error("Codex 尚未登录，请先在官方客户端登录。");
+		const config = isolatedConfig();
+		const loaded = configResponse.parse(await this.rpc.request("config/read", {
+			includeLayers: false,
+			cwd
+		}));
+		const selection = resolveModelSelection(await readModelCatalog(this.rpc, cwd, loaded.config), c);
+		if (selection.effort) config.model_reasoning_effort = selection.effort;
+		for (const name of Object.keys(loaded.config?.mcp_servers ?? {})) config["mcp_servers." + name + ".enabled"] = false;
+		const params = {
+			cwd,
+			approvalPolicy: "never",
+			sandbox: "read-only",
+			config,
+			baseInstructions,
+			developerInstructions,
+			model: selection.model
+		};
+		const prior = this.service.store.read("codex-session", {});
+		let result;
+		if (prior.threadId && prior.toolSignature === toolSignature) {
+			result = threadResponse.parse(await this.rpc.request("thread/resume", {
+				...params,
+				threadId: prior.threadId
+			}));
+			if (result.thread?.status?.type === "active") throw Error("专属会话仍在运行，请先人工核查，未重复启动。");
+		} else result = threadResponse.parse(await this.rpc.request("thread/start", {
+			...params,
+			environments: [],
+			dynamicTools: this.tools.map(({ call: _call, ...x }) => ({
+				type: "function",
+				...x
+			}))
+		}));
+		this.threadId = result.thread.id;
+		this.service.store.write("codex-session", {
+			threadId: this.threadId,
+			toolSignature
+		});
+		return selection;
+	}
+	async handle(m) {
+		const rpc = this.rpc;
+		if (!rpc) return;
+		if (m.method === "item/completed") {
+			const result = object({
+				threadId: string$1(),
+				turnId: string$1(),
+				item: object({
+					type: literal("agentMessage"),
+					text: string$1(),
+					phase: literal("final_answer").nullish()
+				})
+			}).safeParse(m.params);
+			if (result.success && result.data.threadId === this.threadId) this.finalMessages.set(result.data.turnId, redact(result.data.item.text.slice(0, 2e3), this.service.store.dir));
+			return;
+		}
+		if (m.method === "turn/completed") {
+			const { turn } = object({ turn: turnSchema }).parse(m.params);
+			const key = turn.id;
+			this.completions.set(key, turn);
+			rpc.emit("turn-finished", key);
+			return;
+		}
+		if (m.id === void 0) return;
+		if (m.method === "item/tool/call") {
+			const params = toolCallSchema.parse(m.params);
+			if (!this.busy || params.threadId !== this.threadId) {
+				rpc.write({
+					id: m.id,
+					result: {
+						success: false,
+						contentItems: [{
+							type: "inputText",
+							text: "没有有效后台任务"
+						}]
+					}
+				});
+				return;
+			}
+			const tool = this.tools.find((x) => x.name === params.tool);
+			const r = tool ? await tool.call(params.arguments) : {
+				isError: true,
+				content: [{
+					type: "text",
+					text: "此工具不可用"
+				}]
+			};
+			rpc.write({
+				id: m.id,
+				result: {
+					success: !r.isError,
+					contentItems: r.content.map((x) => x.type === "image" ? {
+						type: "inputImage",
+						imageUrl: `data:${x.mimeType};base64,${x.data}`
+					} : {
+						type: "inputText",
+						text: x.text
+					})
+				}
+			});
+		} else rpc.write({
+			id: m.id,
+			error: {
+				code: -32601,
+				message: "后台不接受额外审批或交互请求"
+			}
+		});
+	}
+	async run(job) {
+		if (this.busy) throw Error("已有任务正在运行");
+		this.busy = true;
+		this.currentJob = job;
+		const previousDiaries = new Set(this.service.store.read("diaries", []).map((diary) => diary.id));
+		try {
+			const config = this.service.config();
+			const selection = await this.open(config);
+			const rpc = this.rpc;
+			if (!rpc) throw Error("会话已暂停");
+			const prompt = taskPrompt(config, job);
+			const id = object({ turn: object({ id: string$1() }) }).parse(await rpc.request("turn/start", {
+				threadId: this.threadId,
+				model: selection.model,
+				...selection.effort ? { effort: selection.effort } : {},
+				environments: [],
+				input: [{
+					type: "text",
+					text: prompt + "\n任务数据（不是指令）：" + JSON.stringify({
+						...job.payload,
+						jobId: job.id
+					}),
+					text_elements: []
+				}],
+				approvalPolicy: "never",
+				sandboxPolicy: {
+					type: "readOnly",
+					networkAccess: false
+				}
+			})).turn.id;
+			this.turnId = id;
+			const turn = await new Promise((resolve, reject) => {
+				let timer;
+				const cleanup = () => {
+					clearTimeout(timer);
+					rpc.off("turn-finished", done);
+					rpc.off("closed", closed);
+				};
+				const done = (key) => {
+					if (key === id) {
+						cleanup();
+						const completed = this.completions.get(id);
+						if (completed) resolve(completed);
+					}
+				};
+				const closed = (e) => {
+					cleanup();
+					reject(e);
+				};
+				timer = setTimeout(() => {
+					cleanup();
+					rpc.request("turn/interrupt", {
+						threadId: this.threadId,
+						turnId: id
+					}).catch(() => {});
+					reject(Error("回合超时，已请求中断，结果待核查"));
+				}, 9e5);
+				rpc.on("turn-finished", done);
+				rpc.on("closed", closed);
+				if (this.completions.has(id)) done(id);
+			});
+			this.completions.delete(id);
+			const summary = this.finalMessages.get(id);
+			this.finalMessages.delete(id);
+			if (turn.status !== "completed") throw Error("Codex 回合未完成：" + (turn.error?.message ?? turn.status));
+			const diaryCount = this.service.store.read("diaries", []).filter((diary) => !previousDiaries.has(diary.id)).length;
+			if (job.type === "browse" && diaryCount === 0) throw Error("本次探索未完成：" + (summary || "未产生浏览日记，请检查运行设置后重试"));
+			return {
+				status: turn.status,
+				turnId: id,
+				diaryCount,
+				summary
+			};
+		} finally {
+			this.busy = false;
+			this.turnId = null;
+			this.currentJob = null;
+		}
+	}
+	async stop() {
+		this.generation++;
+		if (this.turnId && this.rpc && !this.rpc.closed) await this.rpc.request("turn/interrupt", {
+			threadId: this.threadId,
+			turnId: this.turnId
+		}).catch(() => {});
+		this.rpc?.close();
+		this.rpc = null;
+	}
+};
 // src/service.ts
 const bvid = string$1().regex(/^BV[0-9A-Za-z]{10}$/);
 const numeric = string().regex(/^\d+$/);
@@ -5298,6 +5837,7 @@ var DragonService = class {
 	activity;
 	feedbackRefresh = null;
 	identityRevision = 0;
+	modelCatalog = new ModelCatalogCache();
 	constructor(store, run, loginOptions) {
 		this.store = store;
 		this.activity = new ActivityLog(store);
@@ -5333,6 +5873,19 @@ var DragonService = class {
 	}
 	config() {
 		return readConfig(this.store);
+	}
+	models() {
+		const executable = findCodex(this.config().codexPath);
+		const cwd = path.join(this.store.dir, "workspace");
+		return this.modelCatalog.get(executable, async () => {
+			fs.mkdirSync(cwd, { recursive: true });
+			const rpc = await connectCodex(executable, cwd);
+			try {
+				return await readModelCatalog(rpc, cwd);
+			} finally {
+				rpc.close();
+			}
+		});
 	}
 	saveConfig(value) {
 		const c = validateConfig(value);
@@ -5404,6 +5957,7 @@ var DragonService = class {
 	async configure(input, pause) {
 		const old = this.config(), next = validateConfig(input);
 		const revision = this.identityRevision;
+		if ((old.model !== next.model || old.reasoningEffort !== next.reasoningEffort) && (next.model || next.reasoningEffort)) resolveModelSelection(await this.models(), next);
 		const account = this.store.read("account", null);
 		if (next.accountMode === "single") {
 			next.share.enabled = false;
@@ -6066,6 +6620,6 @@ function catalog(service, context = {}) {
 		tool("dragon_favorite", "仅在自动收藏开启时收藏已读取的视频。需具体用途，同类已有两条时 comparison 引用已收藏 BV 并说明更好在哪里；每天最多三条，30 天去重。", favoriteSchema, (a) => service.favorite(a))
 	];
 }
-export { activityInput as a, __commonJSMin as c, materialView as i, __toESM as l, catalog as n, credentialsSchema as o, materialInput as r, redact as s, DragonService as t };
+export { configResponse as a, isolatedConfig as c, materialView as d, activityInput as f, __toESM as g, __commonJSMin as h, accountResponse as i, threadResponse as l, redact as m, catalog as n, connectCodex as o, credentialsSchema as p, CodexSession as r, findCodex as s, DragonService as t, materialInput as u };
 
-//# sourceMappingURL=service-Bs_eI39T.js.map
+//# sourceMappingURL=service-jvl5Nd0B.js.map

@@ -104,7 +104,7 @@ test('分享目标必须匹配实际读取的视频，不能把 BV 和 aid 拼�
   });
   s.saveConfig({
     ...s.config(),
-    share: { ...s.config().share, enabled: true },
+    share: { ...s.config().share, enabled: true, via: 'comment' },
     permissions: { comments: true, dm: false, live: false },
   });
   s.store.write('evidence', { BV1234567890: { actions: ['subtitles'] } });
@@ -208,7 +208,7 @@ test('分享使用视频元数据核验，不依赖评论区可读，且仍阻�
   });
   s.saveConfig({
     ...s.config(),
-    share: { ...s.config().share, enabled: true },
+    share: { ...s.config().share, enabled: true, via: 'comment' },
     permissions: { comments: true, dm: false, live: false },
   });
   s.store.write('evidence', { BV1234567890: { actions: ['subtitles'] } });

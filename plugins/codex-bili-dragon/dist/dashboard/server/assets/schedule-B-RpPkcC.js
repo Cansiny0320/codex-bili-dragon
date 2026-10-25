@@ -2,10 +2,9 @@ import { i as __toESM } from "./rolldown-runtime-DYf_mQCB.js";
 import { L as require_react, o as require_jsx_runtime } from "./matchContext-Bm7-ArXH.js";
 import { C as getWindow, _ as mergeProps, a as useRenderElement, c as EMPTY_OBJECT, d as useMergedRefs, f as useButton, g as formatErrorMessage, k as useSettings, n as Button, p as dispatchClickWithModifiers, r as cn, t as createLucideIcon, v as useIsoLayoutEffect } from "./createLucideIcon-BmtKeUIw.js";
 import { n as NativeSelectOption, t as NativeSelect } from "./native-select-DbcBliUc.js";
-import { C as visuallyHiddenInput, M as useBaseUiId, N as useControlled, S as visuallyHidden, _ as useFormContext, a as Loading, b as useFieldRootContext, f as Input, g as useLabelableContext, h as useAriaLabelledBy, i as Field, j as createChangeEventDetails, k as none, m as useLabelableId, o as Panel, p as useValueChanged, s as SaveBar, u as Toggle, v as useRegisterFieldControl, x as fieldValidityMapping, y as useSetFieldFocused } from "./common-BEruSkQj.js";
+import { C as visuallyHiddenInput, M as useBaseUiId, N as useControlled, S as visuallyHidden, _ as useFormContext, a as Loading, b as useFieldRootContext, f as Input, g as useLabelableContext, h as useAriaLabelledBy, i as Field, j as createChangeEventDetails, k as none, m as useLabelableId, o as Panel, p as useValueChanged, s as SaveBar, v as useRegisterFieldControl, x as fieldValidityMapping, y as useSetFieldFocused } from "./common-BEruSkQj.js";
 import { t as Plus } from "./plus-Bggrmnyj.js";
 import { o as useTransitionStatus, r as transitionStatusMapping, t as useOpenChangeComplete } from "./useOpenChangeComplete-Dw8iSJgJ.js";
-import { n as CollapsibleContent, r as CollapsibleTrigger, t as Collapsible } from "./collapsible-DY5CxP_-.js";
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -414,7 +413,7 @@ function Schedule() {
 	const settings = useSettings();
 	const { config, setConfig } = settings;
 	if (!config) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loading, {});
-	const n = config.night, l = config.listen;
+	const n = config.night;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 		className: "page-title",
 		children: "活动时间"
@@ -630,131 +629,7 @@ function Schedule() {
 							})
 						})
 					]
-				})] }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, { children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "留意新消息" }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "form-columns",
-						children: [
-							["comment", "评论"],
-							["dm", "私信"],
-							["live", "直播弹幕"]
-						].map(([key, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
-							label,
-							checked: l[key],
-							onChange: (value) => setConfig({
-								...config,
-								listen: {
-									...l,
-									[key]: value
-								}
-							})
-						}, key))
-					}),
-					(l.comment || l.dm || l.live) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Collapsible, {
-						className: "listener-details",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollapsibleTrigger, {
-							className: "disclosure-trigger",
-							children: "消息设置"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CollapsibleContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "form-columns",
-							children: [
-								l.comment && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
-									label: "检查评论的间隔（秒）",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										type: "number",
-										min: 60,
-										max: 3600,
-										value: l.commentIntervalSec,
-										onChange: (e) => setConfig({
-											...config,
-											listen: {
-												...l,
-												commentIntervalSec: Number(e.target.value)
-											}
-										})
-									})
-								}),
-								l.dm && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
-									label: "检查私信的间隔（秒）",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										type: "number",
-										min: 60,
-										max: 3600,
-										value: l.dmIntervalSec,
-										onChange: (e) => setConfig({
-											...config,
-											listen: {
-												...l,
-												dmIntervalSec: Number(e.target.value)
-											}
-										})
-									})
-								}),
-								l.live && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
-									label: "直播间号",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										inputMode: "numeric",
-										value: l.liveRoom,
-										onChange: (e) => setConfig({
-											...config,
-											listen: {
-												...l,
-												liveRoom: e.target.value
-											}
-										})
-									})
-								})
-							]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "listener-options",
-							children: [
-								l.live && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
-									label: "留意哪些弹幕",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(NativeSelect, {
-										value: l.liveScope,
-										onChange: (e) => setConfig({
-											...config,
-											listen: {
-												...l,
-												liveScope: e.target.value
-											}
-										}),
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-											value: "owner",
-											children: "仅主人"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NativeSelectOption, {
-											value: "mention",
-											children: "只看提到小白龙的消息"
-										})]
-									})
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
-									label: "活动时间外也留意消息",
-									checked: l.allDay,
-									onChange: (allDay) => setConfig({
-										...config,
-										listen: {
-											...l,
-											allDay
-										}
-									})
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
-									label: "每人只回一次",
-									checked: l.oncePerPerson,
-									onChange: (oncePerPerson) => setConfig({
-										...config,
-										listen: {
-											...l,
-											oncePerPerson
-										}
-									})
-								})
-							]
-						})] })]
-					})
-				] })
+				})] })
 			]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SaveBar, { ...settings })]
 	})] });

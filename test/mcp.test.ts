@@ -10,6 +10,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { stopRuntime } from '../packages/runtime/src/runtime';
 test('真实 MCP stdio 握手、工具发现与拒绝非法参数', async (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-mcp-'));
+  fs.writeFileSync(path.join(dir, 'config.json'), JSON.stringify({ updates: { enabled: false } }));
   const client = new Client({ name: 'test', version: '1' });
   t.onTestFinished(async () => {
     await client.close();
@@ -44,7 +45,11 @@ test('真实 MCP stdio 握手、工具发现与拒绝非法参数', async (t) =>
     ],
   );
   const admin = list.tools.filter((tool) => tool.name.startsWith('dragon_admin_'));
-  assert.equal(admin.length, 14);
+  assert.equal(admin.length, 15);
+  assert.equal(
+    admin.find((tool) => tool.name === 'dragon_admin_models')?.annotations?.readOnlyHint,
+    true,
+  );
   assert.ok(admin.every((tool) => JSON.stringify(tool._meta) === '{"ui":{"visibility":["app"]}}'));
   const sidebar = list.tools.find((tool) => tool.name === 'dragon_sidebar')!;
   assert.deepEqual(sidebar._meta?.['openai/ui'], { entrypoints: [{ type: 'global' }] });

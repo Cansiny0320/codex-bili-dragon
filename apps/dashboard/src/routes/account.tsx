@@ -2,7 +2,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../componen
 import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
 import { createFileRoute } from '@tanstack/react-router';
 import { useSettings, useDashboard } from '../lib/state';
-import { Panel, Field, Input, Toggle, SaveBar, Loading } from '../components/common';
+import { Panel, Field, Input, SaveBar, Loading } from '../components/common';
 import { BiliLogin } from '../components/bili-login';
 export const Route = createFileRoute('/account')({ component: Account });
 function Account() {
@@ -70,19 +70,6 @@ function Account() {
           <Collapsible>
             <CollapsibleTrigger className="disclosure-trigger">高级设置</CollapsibleTrigger>
             <CollapsibleContent>
-              <Toggle
-                label="自动更新小白龙"
-                checked={config.updates.enabled}
-                disabled={!state.updates.supported}
-                description={
-                  state.updates.supported
-                    ? '每六小时检查稳定版；兼容更新在空闲时生效。'
-                    : '自动更新仅支持 Codex 共享后台，前台开发模式不自动切换。'
-                }
-                onChange={(enabled) => setConfig({ ...config, updates: { enabled } })}
-              />
-              <p className="muted">后台版本 {state.updates.runtimeVersion}</p>
-              {state.updates.message && <p role="status">{state.updates.message}</p>}
               <p className="muted">
                 登录信息只保存在这台电脑上，并用于连接 B 站。登录失效时，重新扫码即可。
               </p>
@@ -91,13 +78,6 @@ function Account() {
                   value={config.codexPath}
                   placeholder="自动检测"
                   onChange={(e) => setConfig({ ...config, codexPath: e.target.value })}
-                />
-              </Field>
-              <Field label="模型名称（可选）">
-                <Input
-                  value={config.model}
-                  placeholder="使用 Codex 默认模型"
-                  onChange={(e) => setConfig({ ...config, model: e.target.value })}
                 />
               </Field>
             </CollapsibleContent>

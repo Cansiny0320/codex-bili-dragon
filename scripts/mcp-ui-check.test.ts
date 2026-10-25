@@ -13,6 +13,7 @@ import { createHttp } from '../packages/runtime/src/http.js';
 import { connectionPath } from '../packages/runtime/src/runtime.js';
 import { version, root } from '../packages/runtime/src/paths.js';
 import { loginFixture } from './login-fixture.js';
+import { modelFixture } from './model-fixture.js';
 
 test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和审核，凭据不进入日志', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-mcp-ui-'));
@@ -29,6 +30,7 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
     },
     { fetch: login.fetch },
   );
+  service.models = async () => modelFixture;
   const frameFile = path.join(dir, 'runtime/shots/frame.png');
   fs.mkdirSync(path.dirname(frameFile), { recursive: true });
   fs.copyFileSync(path.resolve('assets/icon.png'), frameFile);
@@ -233,9 +235,13 @@ test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和�
     await navigate('待我审核');
     assert.ok(await frame.getByRole('button', { name: '批准发送' }).isDisabled());
     await navigate('操作权限');
+    await frame.getByLabel('模型', { exact: true }).selectOption('fixture-thinking');
+    await frame.getByLabel('思考深度', { exact: true }).selectOption('high');
     await frame.getByRole('switch', { name: '发送评论', exact: true }).click();
     await frame.getByRole('button', { name: '保存更改' }).click();
     await frame.getByRole('status').waitFor();
+    assert.equal(service.config().model, 'fixture-thinking');
+    assert.equal(service.config().reasoningEffort, 'high');
     await navigate('待我审核');
     await frame.getByRole('button', { name: '批准发送' }).click();
     await frame.getByText('暂无待审核的消息。').waitFor();

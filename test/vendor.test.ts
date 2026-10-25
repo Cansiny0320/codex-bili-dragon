@@ -16,6 +16,10 @@ test('真实上游 CLI 读取独立配置，直播命令可解析，不触及 DS
   const quota = await runUpstream(store, ['quota', 'status']);
   assert.equal(quota.code, 0, quota.err);
   assert.match(quota.out, /0\/1/);
+  syncUpstream(store, { ...defaults, quota: { shareDaily: 12 } });
+  const raisedQuota = await runUpstream(store, ['quota', 'status']);
+  assert.equal(raisedQuota.code, 0, raisedQuota.err);
+  assert.match(raisedQuota.out, /0\/12/);
   const live = await runUpstream(store, ['await']);
   assert.notEqual(live.code, 0);
   assert.doesNotMatch(live.err, /未知命令/);

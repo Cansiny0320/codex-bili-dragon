@@ -25,7 +25,27 @@ class Fake extends EventEmitter {
     if (method === 'account/read') return { account: { type: 'chatgpt' } };
     if (method === 'config/read')
       return {
-        config: { mcp_servers: { unrelated: { command: 'anything' } } },
+        config: {
+          model: 'default-model',
+          model_reasoning_effort: 'high',
+          mcp_servers: { unrelated: { command: 'anything' } },
+        },
+      };
+    if (method === 'model/list')
+      return {
+        data: ['default-model', 'other-model'].map((model) => ({
+          id: model,
+          model,
+          displayName: model,
+          hidden: false,
+          isDefault: model === 'default-model',
+          defaultReasoningEffort: 'low',
+          supportedReasoningEfforts: ['low', 'high'].map((reasoningEffort) => ({
+            reasoningEffort,
+            description: reasoningEffort,
+          })),
+        })),
+        nextCursor: null,
       };
     if (method === 'thread/start') return { thread: { id: 'thread-1' } };
     if (method === 'thread/resume')
@@ -174,4 +194,41 @@ test('旧会话缺少新工具时重新注册，活跃连接每轮仍读取最�
   assert.match(turns[1], /更喜欢做饭/);
   assert.doesNotMatch(turns[1], /木工制作过程/);
   await session.stop();
+});
+
+test('模型和深度从下一任务生效，同一会话切回默认时不沿用旧覆盖', async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-model-selection-'));
+  t.onTestFinished(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const service = new DragonService(new Store(dir));
+  const rpc = new Fake();
+  const session = new CodexSession(service, async () => rpc);
+  t.onTestFinished(() => session.stop());
+  service.saveConfig({ ...service.config(), codexPath: 'fake-codex' });
+  await session.run({ id: 'default', type: 'message', payload: {} });
+  service.saveConfig({ ...service.config(), model: 'other-model', reasoningEffort: 'low' });
+  rpc.onTurn = () => service.saveConfig({ ...service.config(), model: '', reasoningEffort: '' });
+  await session.run({ id: 'custom', type: 'message', payload: {} });
+  rpc.onTurn = undefined;
+  await session.run({ id: 'reset', type: 'message', payload: {} });
+  const choices = rpc.calls
+    .filter((c) => c.method === 'turn/start')
+    .map(({ params }) => ({ model: params.model, effort: params.effort }));
+  assert.deepEqual(choices, [
+    { model: 'default-model', effort: 'high' },
+    { model: 'other-model', effort: 'low' },
+    { model: 'default-model', effort: 'high' },
+  ]);
+  assert.equal(rpc.calls.filter((c) => c.method === 'thread/start').length, 1);
+  service.saveConfig({ ...service.config(), model: 'missing' });
+  await assert.rejects(session.run({ id: 'bad-model', type: 'message', payload: {} }), /不可用/);
+  assert.equal(rpc.calls.filter((c) => c.method === 'turn/start').length, 3);
+  await session.stop();
+  service.saveConfig({ ...service.config(), model: '', reasoningEffort: '' });
+  const resumedRpc = new Fake();
+  const resumed = new CodexSession(service, async () => resumedRpc);
+  t.onTestFinished(() => resumed.stop());
+  await resumed.run({ id: 'resumed-default', type: 'message', payload: {} });
+  const resume = resumedRpc.calls.find((call) => call.method === 'thread/resume')!.params;
+  assert.equal(resume.model, 'default-model');
+  assert.equal((resume.config as Record<string, unknown>).model_reasoning_effort, 'high');
 });

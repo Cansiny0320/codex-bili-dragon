@@ -8,6 +8,7 @@ import { Store } from '../packages/runtime/src/store.js';
 import { DragonService } from '../packages/runtime/src/service.js';
 import { createHttp } from '../packages/runtime/src/http.js';
 import { loginFixture } from './login-fixture.js';
+import { modelFixture } from './model-fixture.js';
 
 test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所有外部操作使用替身', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-ui-'));
@@ -25,8 +26,14 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     { fetch: login.fetch },
   );
   service.updatesSupported = true;
+  let modelReads = 0;
+  service.models = async () => {
+    modelReads++;
+    return modelFixture;
+  };
   service.saveConfig({
     ...service.config(),
+    updates: { enabled: false },
     owner: { mid: '10001', name: '你' },
     preferences: { like: ['科技', '有趣知识', '自然', '音乐'], dislike: ['标题党', '引战'] },
   });
@@ -223,6 +230,10 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
         () => document.documentElement.scrollWidth > innerWidth + 1,
       );
       assert.equal(overflow, false, '页面横向溢出：' + name);
+      if (name === 'permissions-mobile') {
+        const modelSelect = await p.getByLabel('模型', { exact: true }).boundingBox();
+        assert.ok(modelSelect && modelSelect.width > 250, '窄屏模型选择应使用整行宽度');
+      }
       assert.ok(
         await p.locator('.review-list-item').evaluateAll((items) =>
           items.every((item) => {
@@ -333,6 +344,25 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     await page.waitForFunction(() => document.querySelectorAll('.review-list-item').length === 2);
     assert.equal(calls.length, 0);
     await page.goto(http.origin + '/permissions');
+    await page.getByLabel('模型', { exact: true }).selectOption('fixture-thinking');
+    await page.getByLabel('思考深度', { exact: true }).selectOption('high');
+    await page.getByLabel('模型', { exact: true }).selectOption('fixture-fast');
+    assert.equal(await page.getByLabel('思考深度', { exact: true }).inputValue(), '');
+    assert.equal(
+      await page.getByLabel('思考深度', { exact: true }).locator('option[value="high"]').count(),
+      0,
+    );
+    await page.getByLabel('思考深度', { exact: true }).selectOption('low');
+    await page.getByLabel('每日最多分享数', { exact: true }).fill('12');
+    await page.getByLabel('无人回应后减少分享（天）', { exact: true }).fill('90');
+    await page.getByLabel('最低分享评分', { exact: true }).fill('25');
+    for (const label of ['每日最多分享数', '无人回应后减少分享（天）', '最低分享评分']) {
+      assert.equal(await page.getByLabel(label, { exact: true }).getAttribute('min'), null);
+      assert.equal(await page.getByLabel(label, { exact: true }).getAttribute('max'), null);
+    }
+    const readsBeforePoll = modelReads;
+    await page.waitForResponse((response) => response.url().includes('/rpc/state'));
+    assert.equal(modelReads, readsBeforePoll, '状态轮询不能重复查询模型目录');
     await page.getByRole('switch', { name: '发送评论', exact: true }).click();
     assert.equal(
       await page
@@ -345,7 +375,26 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     await page.getByRole('status').waitFor();
     assert.equal(service.config().permissions.comments, true);
     assert.equal(service.config().permissions.favorites, true);
+    assert.equal(service.config().model, 'fixture-fast');
+    assert.equal(service.config().reasoningEffort, 'low');
+    assert.equal(service.config().quota.shareDaily, 12);
+    assert.equal(service.config().share.silentAfterDays, 90);
+    assert.equal(service.config().share.minScore, 25);
     await page.reload();
+    await page.getByLabel('模型', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('模型', { exact: true }).inputValue(), 'fixture-fast');
+    assert.equal(await page.getByLabel('每日最多分享数', { exact: true }).inputValue(), '12');
+    assert.equal(
+      await page.getByRole('switch', { name: '私信', exact: true }).getAttribute('aria-checked'),
+      'true',
+    );
+    await page.getByRole('switch', { name: '私信', exact: true }).click();
+    await page.getByLabel('模型', { exact: true }).selectOption('');
+    await page.getByRole('button', { name: '保存更改', exact: true }).click();
+    await page.getByRole('status').waitFor();
+    assert.equal(service.config().listen.dm, false);
+    assert.equal(service.config().model, '');
+    assert.equal(service.config().reasoningEffort, '');
     assert.equal(
       await page
         .getByRole('switch', { name: '自动收藏', exact: true })
@@ -356,8 +405,7 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     await page.getByRole('button', { name: '批准发送' }).click();
     await page.waitForFunction(() => document.querySelectorAll('.review-list-item').length === 1);
     assert.equal(calls.filter((args) => args[0] === 'comment').length, 1);
-    await page.goto(http.origin + '/account');
-    await page.getByText('高级设置', { exact: true }).click();
+    await page.goto(http.origin + '/permissions');
     const updateSwitch = page.getByRole('switch', { name: /^自动更新小白龙/ });
     assert.equal(await updateSwitch.getAttribute('aria-checked'), 'false');
     await updateSwitch.click();
@@ -366,9 +414,13 @@ test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所�
     assert.equal(service.config().updates.enabled, true);
     assert.equal(service.config().enabled, false);
     await page.reload();
-    await page.getByText('高级设置', { exact: true }).click();
     assert.equal(await updateSwitch.getAttribute('aria-checked'), 'true');
     await page.screenshot({ path: path.join(output, 'auto-update-settings.png'), fullPage: true });
+    await page.goto(http.origin + '/schedule');
+    assert.equal(await page.getByRole('heading', { name: '留意新消息', exact: true }).count(), 0);
+    await page.goto(http.origin + '/account');
+    assert.equal(await page.getByRole('switch', { name: /^自动更新小白龙/ }).count(), 0);
+    assert.equal(await page.getByLabel('模型名称（可选）', { exact: true }).count(), 0);
     await page.getByAltText('B 站登录二维码').waitFor();
     assert.equal(await page.getByLabel('SESSDATA', { exact: true }).isVisible(), false);
     login.status(86090);

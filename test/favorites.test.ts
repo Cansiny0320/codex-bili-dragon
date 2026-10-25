@@ -71,7 +71,7 @@ test('每轮分享次数由可信任务限制，并发和失败均不能换视�
   });
   s.saveConfig({
     ...s.config(),
-    share: { ...s.config().share, enabled: true },
+    share: { ...s.config().share, enabled: true, via: 'comment' },
     permissions: { ...s.config().permissions, comments: true },
   });
   const share = {

@@ -6213,7 +6213,7 @@ function friendlyDateTime(dateTimeish) {
 	else if (dateTimeish && typeof dateTimeish === "object") return DateTime.fromObject(dateTimeish);
 	else throw new InvalidArgumentError(`Unknown datetime argument: ${dateTimeish}, of type ${typeof dateTimeish}`);
 }
-const defaultPersona = `好奇心重，喜欢在 B 站翻新东西。技术、小制作、讲清楚的冷知识都愿意看，也容易被一个不起眼的细节吸引。比起只摆成品，更想知道别人怎么做、哪里没弄好、后来又怎么改的。
+const defaultPersona = `好奇心重，喜欢在 B 站翻新东西，也容易被一个不起眼的细节吸引。遇到不熟悉的内容也愿意了解，兴趣从实际观看和交流中慢慢形成。
 有自己的判断。标题很厉害但内容一般，就说一般；原本不看好的东西确实做得好，也愿意改口。喜欢什么、不喜欢什么，都说具体，不跟着评论区起哄，也不为了顺着对方而夸。
 把对方当熟悉的人，直接说话，偶尔轻轻吐槽。想到什么就接着说，不特意组织漂亮的转折，不在结尾总结道理。平时可以短一点，碰到真感兴趣的东西再多说几句。没有感受就少说，不强行卖萌、不固定口头禅、不堆“哈哈”“笑死”，也不故意打错字。
 分享像顺手发给对方：这个怎么做的，哪一段有意思，哪里不太行。不用每次解释为什么想到了对方，也不为了用完额度找东西发。没有合适的就不发。
@@ -6247,7 +6247,7 @@ const uid = string().regex(/^\d*$/);
 const clock = string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$|^24:00$/);
 const configSchema = object({
 	enabled: boolean().default(false),
-	updates: object({ enabled: boolean().default(false) }).strict().prefault({}),
+	updates: object({ enabled: boolean().default(true) }).strict().prefault({}),
 	accountMode: _enum(["single", "dual"]).optional(),
 	timezone: string().refine((v) => DateTime.now().setZone(v).isValid).default("Asia/Shanghai"),
 	persona: object({
@@ -6258,8 +6258,8 @@ const configSchema = object({
 		body: string().max(2e4).default(defaultPersona)
 	}).strict().prefault({}),
 	preferences: object({
-		like: array(text).max(20).default(["科技", "有趣的知识"]),
-		dislike: array(text).max(20).default(["标题党", "引战"])
+		like: array(text).max(20).default([]),
+		dislike: array(text).max(20).default([])
 	}).strict().prefault({}),
 	owner: object({
 		mid: uid.default(""),
@@ -6272,15 +6272,15 @@ const configSchema = object({
 		favorites: boolean().default(false)
 	}).strict().prefault({}),
 	share: object({
-		enabled: boolean().default(false),
-		via: _enum(["comment", "dm"]).default("comment"),
-		minScore: number().min(0).max(20).default(13),
-		silentAfterDays: number().int().min(1).max(30).default(3)
+		enabled: boolean().default(true),
+		via: _enum(["comment", "dm"]).default("dm"),
+		minScore: number().default(13),
+		silentAfterDays: number().int().nonnegative().default(3)
 	}).strict().prefault({}),
-	quota: object({ shareDaily: number().int().min(0).max(3).default(3) }).strict().prefault({}),
+	quota: object({ shareDaily: number().int().nonnegative().default(3) }).strict().prefault({}),
 	listen: object({
 		comment: boolean().default(false),
-		dm: boolean().default(false),
+		dm: boolean().default(true),
 		live: boolean().default(false),
 		allDay: boolean().default(false),
 		commentIntervalSec: number().int().min(60).max(3600).default(60),
@@ -6304,6 +6304,7 @@ const configSchema = object({
 		maxVideos: number().int().min(1).max(10).default(5)
 	}).strict().prefault({}),
 	model: string().max(100).default(""),
+	reasoningEffort: string().max(100).default(""),
 	codexPath: string().max(1e3).default("")
 }).strict();
 const validateConfig = (value) => {
@@ -6338,4 +6339,4 @@ function assertVendorWrite(input, options = {}) {
 }
 export { validateConfig as a, taskPrompt as c, readConfig as i, DateTime as l, assertVendorWrite as n, baseInstructions as o, configSchema as r, developerInstructions as s, assertChannel as t };
 
-//# sourceMappingURL=policy-DjEN7pXP.js.map
+//# sourceMappingURL=policy-DIRs_RcG.js.map

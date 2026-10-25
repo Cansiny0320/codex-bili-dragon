@@ -23,6 +23,8 @@ import { LoginManager, credentialsSchema, type LoginOptions, type LoginAccount }
 import { Feedback, commentEvents } from './feedback.js';
 import { ActivityLog, type ActivityContext, operationDetail } from './activity.js';
 import { frameImages } from './materials.js';
+import { connectCodex, findCodex } from './codex.js';
+import { ModelCatalogCache, readModelCatalog, resolveModelSelection } from './models.js';
 const bvid = z.string().regex(/^BV[0-9A-Za-z]{10}$/),
   numeric = z.coerce.string().regex(/^\d+$/),
   message = z
@@ -102,6 +104,7 @@ export class DragonService {
   activity: ActivityLog;
   private feedbackRefresh: Promise<ReturnType<Feedback['status']>> | null = null;
   private identityRevision = 0;
+  private modelCatalog = new ModelCatalogCache();
   constructor(store: Store, run?: ToolRunner, loginOptions?: LoginOptions) {
     this.store = store;
     this.activity = new ActivityLog(store);
@@ -139,6 +142,19 @@ export class DragonService {
   }
   config() {
     return readConfig(this.store);
+  }
+  models() {
+    const executable = findCodex(this.config().codexPath);
+    const cwd = path.join(this.store.dir, 'workspace');
+    return this.modelCatalog.get(executable, async () => {
+      fs.mkdirSync(cwd, { recursive: true });
+      const rpc = await connectCodex(executable, cwd);
+      try {
+        return await readModelCatalog(rpc, cwd);
+      } finally {
+        rpc.close();
+      }
+    });
   }
   saveConfig(value: unknown) {
     const c = validateConfig(value);
@@ -214,6 +230,12 @@ export class DragonService {
     const old = this.config(),
       next = validateConfig(input);
     const revision = this.identityRevision;
+    if (
+      (old.model !== next.model || old.reasoningEffort !== next.reasoningEffort) &&
+      (next.model || next.reasoningEffort)
+    ) {
+      resolveModelSelection(await this.models(), next);
+    }
     const account = this.store.read('account', null);
     if (next.accountMode === 'single') {
       next.share.enabled = false;

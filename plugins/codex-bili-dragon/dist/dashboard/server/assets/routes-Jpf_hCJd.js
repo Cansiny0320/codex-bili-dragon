@@ -5,7 +5,7 @@ import { i as TabsTrigger, n as TabsContent, r as TabsList, t as Tabs } from "./
 import { P as ChevronRight, a as Loading, c as SectionTitle, d as VideoCard, l as StatusBar, o as Panel, r as Empty } from "./common-BEruSkQj.js";
 import { t as Mail } from "./mail-cNZMDL23.js";
 import { t as MessageSquare } from "./message-square-Dd8LBsos.js";
-import { a as Link2, i as NotebookText, s as CirclePlay } from "./router-DgAsfa1F.js";
+import { a as Link2, i as NotebookText, s as CirclePlay } from "./router-D3aR2GNG.js";
 // src/routes/index.tsx?tsr-split=component
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();

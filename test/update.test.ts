@@ -71,9 +71,11 @@ test('更新仅接受更高稳定版本和完全一致的桥接、工具及数�
   assert.equal(compatible(manifest, { ...manifest, schema: 2 }), false);
 });
 
-test('默认不联网，开启后立即检查且每六小时才再次检查', async (t) => {
+test('默认开启更新且每六小时检查，显式关闭后不联网', async (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-update-interval-'));
   const service = new DragonService(new Store(dir));
+  assert.equal(service.config().updates.enabled, true);
+  service.saveConfig({ ...service.config(), updates: { enabled: false } });
   const daemon = new Daemon(service, { run: async () => {}, stop: async () => {} });
   let requests = 0;
   const updater = new Updater(
@@ -138,6 +140,7 @@ test('排空等待当前任务完成，不领取后续任务、不改活动开�
   service.saveConfig({
     ...service.config(),
     enabled: true,
+    listen: { ...service.config().listen, dm: false },
     night: { ...service.config().night, windows: [{ start: '20:00', end: '24:00', wakes: 0 }] },
   });
   const daemon = new Daemon(service, {

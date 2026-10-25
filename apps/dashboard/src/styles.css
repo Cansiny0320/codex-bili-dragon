@@ -1775,6 +1775,12 @@ details .field:first-of-type {
   .form-columns .field > .with-unit {
     grid-column: 2;
   }
+  .model-settings .form-columns .field {
+    grid-template-columns: 1fr;
+  }
+  .model-settings [data-slot='native-select-wrapper'] {
+    width: 100%;
+  }
   .form-columns .field > [data-slot='input'] {
     grid-column: 2;
   }

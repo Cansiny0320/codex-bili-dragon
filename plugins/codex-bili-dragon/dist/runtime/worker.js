@@ -1,8 +1,8 @@
-import { t as DragonService } from "./service-Bs_eI39T.js";
+import { t as DragonService } from "./service-jvl5Nd0B.js";
 import { c as readManifest, d as readTransition, f as transitionPath, h as atomic, l as stageUpdate, m as Store, o as compatible, p as updateState, s as newer, t as connectionPath, v as errorMessage } from "./runtime-BQhNtnnM.js";
 import { a as version, n as dataRoot, r as root } from "./paths-5G6hh4eK.js";
 import { _ as string, a as array, o as boolean, p as object } from "./schemas-BWrad36H.js";
-import { n as Daemon, t as createHttp } from "./http-BFGXprSR.js";
+import { n as Daemon, t as createHttp } from "./http-B4CZTnON.js";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import fs from "node:fs";

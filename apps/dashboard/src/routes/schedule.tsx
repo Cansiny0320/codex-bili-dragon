@@ -1,18 +1,16 @@
 import { Checkbox } from '../components/ui/checkbox';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components/ui/collapsible';
 import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
 import { createFileRoute } from '@tanstack/react-router';
 import { Plus, Trash2 } from 'lucide-react';
 import { useSettings } from '../lib/state';
-import { Panel, Field, Input, Toggle, SaveBar, Loading } from '../components/common';
+import { Panel, Field, Input, SaveBar, Loading } from '../components/common';
 import { Button } from '../components/ui/button';
 export const Route = createFileRoute('/schedule')({ component: Schedule });
 function Schedule() {
   const settings = useSettings();
   const { config, setConfig } = settings;
   if (!config) return <Loading />;
-  const n = config.night,
-    l = config.listen;
+  const n = config.night;
   return (
     <>
       <h1 className="page-title">活动时间</h1>
@@ -208,109 +206,6 @@ function Schedule() {
                 </div>
               </Field>
             </div>
-          </Panel>
-          <Panel>
-            <h2>留意新消息</h2>
-            <div className="form-columns">
-              {(
-                [
-                  ['comment', '评论'],
-                  ['dm', '私信'],
-                  ['live', '直播弹幕'],
-                ] as const
-              ).map(([key, label]) => (
-                <Toggle
-                  key={key}
-                  label={label}
-                  checked={l[key]}
-                  onChange={(value) => setConfig({ ...config, listen: { ...l, [key]: value } })}
-                />
-              ))}
-            </div>
-            {(l.comment || l.dm || l.live) && (
-              <Collapsible className="listener-details">
-                <CollapsibleTrigger className="disclosure-trigger">消息设置</CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="form-columns">
-                    {l.comment && (
-                      <Field label="检查评论的间隔（秒）">
-                        <Input
-                          type="number"
-                          min={60}
-                          max={3600}
-                          value={l.commentIntervalSec}
-                          onChange={(e) =>
-                            setConfig({
-                              ...config,
-                              listen: { ...l, commentIntervalSec: Number(e.target.value) },
-                            })
-                          }
-                        />
-                      </Field>
-                    )}
-                    {l.dm && (
-                      <Field label="检查私信的间隔（秒）">
-                        <Input
-                          type="number"
-                          min={60}
-                          max={3600}
-                          value={l.dmIntervalSec}
-                          onChange={(e) =>
-                            setConfig({
-                              ...config,
-                              listen: { ...l, dmIntervalSec: Number(e.target.value) },
-                            })
-                          }
-                        />
-                      </Field>
-                    )}
-                    {l.live && (
-                      <Field label="直播间号">
-                        <Input
-                          inputMode="numeric"
-                          value={l.liveRoom}
-                          onChange={(e) =>
-                            setConfig({ ...config, listen: { ...l, liveRoom: e.target.value } })
-                          }
-                        />
-                      </Field>
-                    )}
-                  </div>
-                  <div className="listener-options">
-                    {l.live && (
-                      <Field label="留意哪些弹幕">
-                        <NativeSelect
-                          value={l.liveScope}
-                          onChange={(e) =>
-                            setConfig({
-                              ...config,
-                              listen: { ...l, liveScope: e.target.value as 'owner' | 'mention' },
-                            })
-                          }
-                        >
-                          <NativeSelectOption value="owner">仅主人</NativeSelectOption>
-                          <NativeSelectOption value="mention">
-                            只看提到小白龙的消息
-                          </NativeSelectOption>
-                        </NativeSelect>
-                      </Field>
-                    )}
-                    <Toggle
-                      label="活动时间外也留意消息"
-                      checked={l.allDay}
-                      onChange={(allDay) => setConfig({ ...config, listen: { ...l, allDay } })}
-                    />
-                    <Toggle
-                      label="每人只回一次"
-                      checked={l.oncePerPerson}
-                      onChange={(oncePerPerson) =>
-                        setConfig({ ...config, listen: { ...l, oncePerPerson } })
-                      }
-                    />
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
           </Panel>
         </div>
         <SaveBar {...settings} />

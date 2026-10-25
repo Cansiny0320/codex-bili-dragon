@@ -13,6 +13,8 @@ test('预构建 ZIP 在无 node_modules 的独立目录直接运行 MCP、后台
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-package-'));
   const plugin = path.join(dir, 'plugin'),
     data = path.join(dir, 'data');
+  fs.mkdirSync(data);
+  fs.writeFileSync(path.join(data, 'config.json'), JSON.stringify({ updates: { enabled: false } }));
   const entries = unzipSync(
     fs.readFileSync(path.resolve('dist', `codex-bili-dragon-${version}-plugin.zip`)),
   );

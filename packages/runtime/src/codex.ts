@@ -13,9 +13,16 @@ import { version } from './paths.js';
 import { redact } from './upstream.js';
 import { createHash } from 'node:crypto';
 import { baseInstructions, developerInstructions, taskPrompt } from './prompts.js';
+import { readModelCatalog, resolveModelSelection } from './models.js';
 export const accountResponse = z.object({ account: z.object({ type: z.string() }).nullable() });
 export const configResponse = z.object({
-  config: z.object({ mcp_servers: z.record(z.string(), z.unknown()).optional() }).optional(),
+  config: z
+    .object({
+      model: z.string().nullish(),
+      model_reasoning_effort: z.string().nullish(),
+      mcp_servers: z.record(z.string(), z.unknown()).optional(),
+    })
+    .optional(),
 });
 export const threadResponse = z.object({
   thread: z.object({ id: z.string(), status: z.object({ type: z.string() }).optional() }),
@@ -265,10 +272,10 @@ export class CodexSession {
     this.completions = new Map();
     this.generation = 0;
   }
-  async open() {
-    if (this.rpc && !this.rpc.closed) return;
-    const c = this.service.config(),
-      cwd = path.join(this.service.store.dir, 'workspace');
+  async open(c = this.service.config()) {
+    if (this.rpc && !this.rpc.closed)
+      return resolveModelSelection(await readModelCatalog(this.rpc, this.cwd), c);
+    const cwd = path.join(this.service.store.dir, 'workspace');
     fs.mkdirSync(cwd, { recursive: true });
     this.cwd = cwd;
     const generation = this.generation;
@@ -304,8 +311,14 @@ export class CodexSession {
     const loaded = configResponse.parse(
       await this.rpc.request('config/read', {
         includeLayers: false,
+        cwd,
       }),
     );
+    const selection = resolveModelSelection(
+      await readModelCatalog(this.rpc, cwd, loaded.config),
+      c,
+    );
+    if (selection.effort) config.model_reasoning_effort = selection.effort;
     for (const name of Object.keys(loaded.config?.mcp_servers ?? {}))
       config['mcp_servers.' + name + '.enabled'] = false;
     const params = {
@@ -315,7 +328,7 @@ export class CodexSession {
       config,
       baseInstructions,
       developerInstructions,
-      ...(c.model ? { model: c.model } : {}),
+      model: selection.model,
     };
     const prior = this.service.store.read('codex-session', {});
     let result;
@@ -342,6 +355,7 @@ export class CodexSession {
     }
     this.threadId = result.thread.id;
     this.service.store.write('codex-session', { threadId: this.threadId, toolSignature });
+    return selection;
   }
   async handle(m: RpcMessage) {
     const rpc = this.rpc;
@@ -417,14 +431,16 @@ export class CodexSession {
       this.service.store.read('diaries', []).map((diary) => diary.id),
     );
     try {
-      await this.open();
+      const config = this.service.config();
+      const selection = await this.open(config);
       const rpc = this.rpc;
       if (!rpc) throw Error('会话已暂停');
-      const config = this.service.config();
       const prompt = taskPrompt(config, job);
       const response = z.object({ turn: z.object({ id: z.string() }) }).parse(
         await rpc.request('turn/start', {
           threadId: this.threadId,
+          model: selection.model,
+          ...(selection.effort ? { effort: selection.effort } : {}),
           environments: [],
           input: [
             {

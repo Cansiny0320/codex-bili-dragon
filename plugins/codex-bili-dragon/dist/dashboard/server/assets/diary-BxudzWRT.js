@@ -3,7 +3,7 @@ import { L as require_react, o as require_jsx_runtime } from "./matchContext-Bm7
 import { A as videosFrom, O as useDashboard, n as Button, t as createLucideIcon } from "./createLucideIcon-BmtKeUIw.js";
 import { i as TabsTrigger, n as TabsContent, r as TabsList, t as Tabs } from "./tabs-DiMSKtwS.js";
 import { P as ChevronRight, a as Loading, d as VideoCard, f as Input, n as Cover, o as Panel, r as Empty } from "./common-BEruSkQj.js";
-import { i as NotebookText } from "./router-DgAsfa1F.js";
+import { i as NotebookText } from "./router-D3aR2GNG.js";
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs
 /**
 * @license lucide-react v1.61.0 - ISC

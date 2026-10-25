@@ -13,6 +13,7 @@ import { migrateData } from '../packages/runtime/src/migrate';
 
 test('并发插件连接共用后台，状态不泄露连接密钥，停止后能够重启', async (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-runtime-'));
+  fs.writeFileSync(path.join(dir, 'config.json'), JSON.stringify({ updates: { enabled: false } }));
   t.onTestFinished(async () => {
     await stopRuntime(dir);
     fs.rmSync(dir, { recursive: true, force: true });

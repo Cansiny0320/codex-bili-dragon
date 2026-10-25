@@ -9,7 +9,7 @@ export const configSchema = z
   .object({
     enabled: z.boolean().default(false),
     updates: z
-      .object({ enabled: z.boolean().default(false) })
+      .object({ enabled: z.boolean().default(true) })
       .strict()
       .prefault({}),
     // Older configurations are resolved after the login identity is verified.
@@ -30,8 +30,8 @@ export const configSchema = z
       .prefault({}),
     preferences: z
       .object({
-        like: z.array(text).max(20).default(['科技', '有趣的知识']),
-        dislike: z.array(text).max(20).default(['标题党', '引战']),
+        like: z.array(text).max(20).default([]),
+        dislike: z.array(text).max(20).default([]),
       })
       .strict()
       .prefault({}),
@@ -50,21 +50,21 @@ export const configSchema = z
       .prefault({}),
     share: z
       .object({
-        enabled: z.boolean().default(false),
-        via: z.enum(['comment', 'dm']).default('comment'),
-        minScore: z.number().min(0).max(20).default(13),
-        silentAfterDays: z.number().int().min(1).max(30).default(3),
+        enabled: z.boolean().default(true),
+        via: z.enum(['comment', 'dm']).default('dm'),
+        minScore: z.number().default(13),
+        silentAfterDays: z.number().int().nonnegative().default(3),
       })
       .strict()
       .prefault({}),
     quota: z
-      .object({ shareDaily: z.number().int().min(0).max(3).default(3) })
+      .object({ shareDaily: z.number().int().nonnegative().default(3) })
       .strict()
       .prefault({}),
     listen: z
       .object({
         comment: z.boolean().default(false),
-        dm: z.boolean().default(false),
+        dm: z.boolean().default(true),
         live: z.boolean().default(false),
         allDay: z.boolean().default(false),
         commentIntervalSec: z.number().int().min(60).max(3600).default(60),
@@ -97,6 +97,7 @@ export const configSchema = z
       .strict()
       .prefault({}),
     model: z.string().max(100).default(''),
+    reasoningEffort: z.string().max(100).default(''),
     codexPath: z.string().max(1000).default(''),
   })
   .strict();

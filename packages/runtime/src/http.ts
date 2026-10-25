@@ -148,6 +148,9 @@ export async function createHttp(
               : '';
           let result: unknown;
           switch (url.pathname) {
+            case '/api/models':
+              result = await actions.models();
+              break;
             case '/api/activity':
               result = actions.activity(data);
               break;
