@@ -1,0 +1,86 @@
+{
+  "_readme": "复制成 ~/.dsh/bili-whale.config.json 再改；所有字段都有默认值，不用全填 ✓ 下面这些是【保守默认】，小号照这个跑最安全 ✓",
+  "_risk_note": "请求保护：默认值给的是「刚创的小号也扛得住」的量。你自己的老号想放开，直接把 risk 里那几个数调大即可 ✓",
+  "_listen_note": "监听默认：评论监听【关】、私信监听【开但 60 秒一轮】。长时间高频轮询是小号被风控的头号原因 ✗ 想开评论监听自己去设置页打勾 ✓",
+  "persona": {
+    "name": "",
+    "ownerTitle": "主人",
+    "selfClaim": "我",
+    "diaryTitle": ""
+  },
+  "preferences": {
+    "like": [
+      "AI 工具与插件",
+      "猫咪",
+      "鬼畜与怀旧剪辑",
+      "动画/模型"
+    ],
+    "dislike": [
+      "带货",
+      "擦边",
+      "标题党",
+      "纯搬运"
+    ]
+  },
+  "owner": {
+    "mid": "",
+    "name": ""
+  },
+  "self": {
+    "mid": "",
+    "name": ""
+  },
+  "aliases": [],
+  "quota": {
+    "shareDaily": 3
+  },
+  "share": {
+    "enabled": true,
+    "minScore": 13,
+    "silentAfterDays": 3,
+    "aiCommentGuard": false
+  },
+  "risk": {
+    "minGapMs": 1500,
+    "readHourly": 600,
+    "readDaily": 3000,
+    "writeHourly": 12,
+    "writeDaily": 30,
+    "writeGapSec": 120,
+    "dmGapSec": 60
+  },
+  "listen": {
+    "comment": false,
+    "commentIntervalSec": 60,
+    "scope": "both",
+    "oncePerPerson": true,
+    "allDay": false,
+    "dm": true,
+    "dmIntervalSec": 60,
+    "live": false,
+    "liveRoom": "",
+    "liveScope": "owner"
+  },
+  "night": {
+    "windows": [
+      {
+        "start": "20:00",
+        "end": "24:00",
+        "wakes": 1
+      }
+    ],
+    "skipChance": 0.3,
+    "maxVideos": 5,
+    "maxWakesPerDay": 1
+  },
+  "notify": {
+    "type": "none",
+    "url": "",
+    "template": "text",
+    "cmd": "",
+    "path": "",
+    "args": []
+  },
+  "sessionRotateDays": 0,
+  "personaOncePerSession": false
+}

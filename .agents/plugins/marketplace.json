@@ -1,0 +1,20 @@
+{
+  "name": "bili-dragon",
+  "interface": {
+    "displayName": "B 站小白龙"
+  },
+  "plugins": [
+    {
+      "name": "codex-bili-dragon",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-bili-dragon"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

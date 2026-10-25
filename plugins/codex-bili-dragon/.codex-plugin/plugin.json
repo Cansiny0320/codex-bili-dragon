@@ -1,0 +1,26 @@
+{
+  "name": "codex-bili-dragon",
+  "version": "0.7.0",
+  "description": "Codex 本地 B 站伙伴：阅读、作息、双日记与受控互动。",
+  "author": {
+    "name": "Cansiny0320"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json",
+  "interface": {
+    "displayName": "B 站小白龙",
+    "shortDescription": "在 B 站探索、写日记，按你的规则互动",
+    "developerName": "Cansiny0320",
+    "category": "Productivity",
+    "defaultPrompt": "启动小白龙并打开管理页。",
+    "capabilities": ["Bilibili reading", "Local scheduling", "MCP App dashboard"],
+    "logo": "./assets/icon.png",
+    "composerIcon": "./assets/icon.png"
+  },
+  "requires_local_executor": true,
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md"
+    }
+  }
+}
