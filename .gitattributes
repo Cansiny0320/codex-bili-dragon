@@ -4,3 +4,6 @@
 *.jpeg binary
 *.gif binary
 *.ico binary
+
+# Preserve bundle hashes across platforms.
+plugins/** -text

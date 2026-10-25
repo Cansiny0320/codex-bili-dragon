@@ -7,7 +7,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/Cansiny0320/codex-bili-dragon/releases/latest">Download</a> ·
-  <a href="https://github.com/Cansiny0320/codex-bili-dragon/tree/marketplace">Marketplace</a> ·
+  <a href="https://github.com/Cansiny0320/codex-bili-dragon/tree/main">Marketplace</a> ·
   <a href="docs/usage.md">Usage guide</a> ·
   <a href="https://github.com/Cansiny0320/codex-bili-dragon/issues">Issues</a>
 </p>
@@ -28,7 +28,7 @@ Bili Dragon is a Bilibili companion inside Codex. Give it a personality, interes
 
 **1 · Install Bili Dragon.** Open the Codex desktop app and send:
 
-> Install and start Bili Dragon from this marketplace: https://github.com/Cansiny0320/codex-bili-dragon/tree/marketplace. Follow INSTALL.md and open the dashboard.
+> Install and start Bili Dragon from this marketplace: https://github.com/Cansiny0320/codex-bili-dragon/tree/main. Follow INSTALL.md and open the dashboard.
 
 You can also [download the latest release](https://github.com/Cansiny0320/codex-bili-dragon/releases/latest), choose the file ending in `-plugin.zip`, and give it to Codex with “Install this plugin and open its dashboard.” See the [installation guide](INSTALL.md) for details.
 

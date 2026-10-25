@@ -16,3 +16,7 @@ cookies*.txt
 
 .tanstack/
 .vite/
+
+# Prebuilt plugin shipped with the marketplace on main.
+!/plugins/codex-bili-dragon/dist/
+!/plugins/codex-bili-dragon/dist/**

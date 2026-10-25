@@ -9,8 +9,8 @@ import { prepareMarketplace } from '../scripts/marketplace.js';
 test('市场只包含已校验的预构建文件，额外凭据不会被发布，更新清除旧文件', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-marketplace-'));
   try {
-    const source = path.join(dir, 'package'),
-      output = path.join(dir, 'marketplace');
+    const output = path.join(dir, 'repo'),
+      source = path.join(output, 'dist/plugin');
     const contents: Record<string, string> = {
       'plugin.json': '{"name":"codex-bili-dragon","version":"0.7.0"}',
       'mcp.json': '{}',
@@ -34,7 +34,10 @@ test('市场只包含已校验的预构建文件，额外凭据不会被发布�
       }),
     );
     fs.writeFileSync(path.join(source, 'credentials.json'), 'must not publish');
+    fs.writeFileSync(path.join(output, 'README.md'), 'source README');
     const result = prepareMarketplace(source, output);
+    assert.equal(fs.readFileSync(path.join(output, 'README.md'), 'utf8'), 'source README');
+    assert.throws(() => prepareMarketplace(source, source), /目录/);
     const catalog = JSON.parse(
       fs.readFileSync(path.join(output, '.agents/plugins/marketplace.json'), 'utf8'),
     );

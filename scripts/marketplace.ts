@@ -9,7 +9,9 @@ export function prepareMarketplace(sourceDirectory: string, outputDirectory: str
   if (
     output === source ||
     output.startsWith(source + path.sep) ||
-    source.startsWith(output + path.sep)
+    source === pluginDirectory ||
+    source.startsWith(pluginDirectory + path.sep) ||
+    pluginDirectory.startsWith(source + path.sep)
   )
     throw Error('市场输出目录必须与安装包目录分开');
   const bundle = JSON.parse(fs.readFileSync(path.join(source, 'bundle.json'), 'utf8')) as {

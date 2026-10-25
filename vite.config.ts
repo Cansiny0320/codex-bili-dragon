@@ -4,6 +4,7 @@ export default defineConfig({
   lint: {
     ignorePatterns: [
       'vendor/**',
+      'plugins/**',
       'dist/**',
       'docs/design/**',
       'apps/dashboard/src/routeTree.gen.ts',
@@ -14,6 +15,7 @@ export default defineConfig({
     ignorePatterns: [
       'apps/dashboard/src/routeTree.gen.ts',
       'vendor/**',
+      'plugins/**',
       'dist/**',
       'docs/design/**',
       'pnpm-lock.yaml',

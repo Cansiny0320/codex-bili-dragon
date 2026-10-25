@@ -102,3 +102,7 @@
 - pnpm check 与 pnpm build 通过。README 按产品介绍收紧，开发与发布命令移至 CONTRIBUTING.md。
 - Release ZIP 与 GitHub 市场由同一预构建包生成；市场目录只复制 bundle.json 中通过 SHA-256 校验的文件，不包含个人数据或 node_modules。发布后的远程检查另见该版本 Release。
 - 最终 ZIP 在仓库外、不安装 node_modules 的情况下通过 MCP、后台、网页资源和停止流程检查。Codex 实际 app-server 的 plugin/read 成功解析生成的市场，识别 1 个 MCP 服务、2 个技能与 setup 引导；未替换正在使用的本机安装。
+
+## 市场移入 main
+
+按用户要求，源码、市场清单和预构建插件统一放在 main。生成脚本只替换 plugins/codex-bili-dragon，保留仓库 README 和源码；对应回归先失败后通过。相关格式、类型与入口检查、独立安装包检查及 Codex 实际市场解析通过。构建产物排除在源码 lint/format 之外，Git 保留原始字节以维持 bundle.json 校验。

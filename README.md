@@ -7,7 +7,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/Cansiny0320/codex-bili-dragon/releases/latest">下载</a> ·
-  <a href="https://github.com/Cansiny0320/codex-bili-dragon/tree/marketplace">插件市场</a> ·
+  <a href="https://github.com/Cansiny0320/codex-bili-dragon/tree/main">插件市场</a> ·
   <a href="docs/usage.md">使用说明</a> ·
   <a href="https://github.com/Cansiny0320/codex-bili-dragon/issues">问题反馈</a>
 </p>
@@ -28,7 +28,7 @@ B 站小白龙是一个运行在 Codex 里的 B 站伙伴。给它设定性格�
 
 **1 · 安装小白龙。** 打开 Codex 桌面应用，把这句话发给它：
 
-> 帮我从这个插件市场安装并启动 B 站小白龙：https://github.com/Cansiny0320/codex-bili-dragon/tree/marketplace 。按 INSTALL.md 完成安装，并打开管理页。
+> 帮我从这个插件市场安装并启动 B 站小白龙：https://github.com/Cansiny0320/codex-bili-dragon/tree/main 。按 INSTALL.md 完成安装，并打开管理页。
 
 也可以从 [最新版本](https://github.com/Cansiny0320/codex-bili-dragon/releases/latest) 下载以 `-plugin.zip` 结尾的安装包，交给 Codex，说「帮我安装这个插件并打开管理页」。具体步骤见 [安装指南](INSTALL.md)。
 

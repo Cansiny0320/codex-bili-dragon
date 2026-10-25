@@ -2,7 +2,7 @@
 
 这是交给 Codex 执行的安装指南。插件市场和 Release 使用同一份构建好的插件，不需要用户编译。用户可以说：
 
-> 帮我从这个插件市场安装并启动 B 站小白龙：https://github.com/Cansiny0320/codex-bili-dragon/tree/marketplace 。按 INSTALL.md 检查环境、完成安装，并打开管理页。
+> 帮我从这个插件市场安装并启动 B 站小白龙：https://github.com/Cansiny0320/codex-bili-dragon/tree/main 。按 INSTALL.md 检查环境、完成安装，并打开管理页。
 
 也可以把预构建的 `codex-bili-dragon-*-plugin.zip` 提供给 Codex，说「帮我安装这个插件并打开管理页」。
 
@@ -13,7 +13,7 @@
 3. 添加并安装市场里的插件：
 
    ```sh
-   codex plugin marketplace add Cansiny0320/codex-bili-dragon --ref marketplace
+   codex plugin marketplace add Cansiny0320/codex-bili-dragon --ref main
    codex plugin add codex-bili-dragon@bili-dragon
    codex plugin list --marketplace bili-dragon --json
    ```
@@ -21,7 +21,7 @@
 4. 确认返回的安装路径含有 `dist/runtime/mcp.js` 和 `dist/mcp-app/index.html`，插件已启用。运行插件的初始化 Skill，调用 `dragon_control` 的 `start`，再调用 `dragon_open`。首次抽取视频画面时会自动检查并准备 FFmpeg。
 5. 当前聊天尚未刷新插件工具时，在插件详情页「管理 → 重新加载」。然后让用户在管理页扫码登录、设置兴趣和活动时间。
 
-`marketplace` 分支提供可安装的成品，`main` 分支保留源码。添加的是本项目市场，不代表插件已进入 OpenAI 官方公共目录。市场和 ZIP 使用同一插件标识；已有账号与日记保留，更新前先停止旧版后台。
+`main` 同时提供源码和可安装的成品，市场清单指向 `plugins/codex-bili-dragon`。添加的是本项目市场，不代表插件已进入 OpenAI 官方公共目录。市场和 ZIP 使用同一插件标识；已有账号与日记保留，更新前先停止旧版后台。
 
 ## 从 Release ZIP 安装
 

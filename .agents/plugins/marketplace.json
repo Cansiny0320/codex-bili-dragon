@@ -1,16 +1,19 @@
 {
   "name": "bili-dragon",
-  "interface": { "displayName": "B 站小白龙" },
+  "interface": {
+    "displayName": "B 站小白龙"
+  },
   "plugins": [
     {
       "name": "codex-bili-dragon",
       "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/Cansiny0320/codex-bili-dragon.git",
-        "ref": "marketplace",
+        "source": "local",
         "path": "./plugins/codex-bili-dragon"
       },
-      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     }
   ]
