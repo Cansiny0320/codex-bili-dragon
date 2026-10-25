@@ -1,6 +1,6 @@
 import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
 import { createFileRoute } from '@tanstack/react-router';
-import { MessageSquare, Mail, PlayCircle } from 'lucide-react';
+import { MessageSquare, Mail, PlayCircle, Bookmark } from 'lucide-react';
 import { useSettings } from '../lib/state';
 import { Panel, Field, Input, Toggle, SaveBar, StatusBar, Loading } from '../components/common';
 export const Route = createFileRoute('/permissions')({ component: Permissions });
@@ -26,6 +26,7 @@ function Permissions() {
                 [MessageSquare, '发送评论', 'comments'],
                 [Mail, '发送私信', 'dm'],
                 [PlayCircle, '发送直播弹幕', 'live'],
+                [Bookmark, '自动收藏', 'favorites'],
               ] as const
             ).map(([Icon, label, key]) => (
               <div className="permission-row" key={key}>

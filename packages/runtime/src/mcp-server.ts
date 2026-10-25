@@ -23,11 +23,15 @@ import {
 import { errorMessage } from './types.js';
 import { redact } from './upstream.js';
 import { credentialsSchema } from './login.js';
+import { activityInput } from './activity.js';
+import { materialInput } from './materials.js';
 
 export const appUri = 'ui://bili-dragon/dashboard';
 const empty = z.object({}).strict();
 const id = z.object({ id: z.string().min(1).max(200) }).strict();
 const adminSchemas = {
+  activity: activityInput,
+  material: materialInput,
   state: empty,
   config: configSchema,
   credentials: credentialsSchema,
@@ -43,6 +47,8 @@ const adminSchemas = {
 };
 type AdminAction = keyof typeof adminSchemas;
 const adminNames: Record<AdminAction, string> = {
+  activity: '查看行动记录',
+  material: '查看已读素材',
   state: '读取管理页',
   config: '保存设置',
   credentials: '保存账号连接',
@@ -86,6 +92,8 @@ export function createDragonMcp(dir = dataRoot) {
     diary: (args) => forward('dragon_diary', args),
     reply: (eventId, text) => forward('dragon_reply', { eventId, text }),
     share: (args) => forward('dragon_share', args),
+    favorite: (args) => forward('dragon_favorite', args),
+    refreshFeedback: () => forward('dragon_feedback', {}),
   });
   const open = async (): Promise<CallToolResult> => {
     await start();
@@ -134,7 +142,7 @@ export function createDragonMcp(dir = dataRoot) {
       description: '管理页专用：' + adminNames[action as AdminAction],
       inputSchema: z.toJSONSchema(schema) as Tool['inputSchema'],
       annotations: {
-        readOnlyHint: action === 'state',
+        readOnlyHint: ['state', 'activity', 'material'].includes(action),
         destructiveHint: action === 'approve',
         openWorldHint: ['approve', 'checkLogin', 'run', 'loginStart', 'loginPoll'].includes(action),
       },

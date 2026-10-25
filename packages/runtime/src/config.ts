@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DateTime } from 'luxon';
 import type { Store } from './store.js';
+import { defaultPersona, legacyPersona } from './prompts.js';
 const text = z.string().max(2000),
   uid = z.string().regex(/^\d*$/),
   clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$|^24:00$/);
@@ -19,12 +20,7 @@ export const configSchema = z
         ownerTitle: text.default('你'),
         selfClaim: text.default('我'),
         diaryTitle: text.default('给你的信'),
-        body: z
-          .string()
-          .max(20000)
-          .default(
-            '我是小白龙，一位喜欢探索 B 站的 AI 伙伴。说话自然，有自己的兴趣和判断；不冒充真人，不编造没看过的内容。',
-          ),
+        body: z.string().max(20000).default(defaultPersona),
       })
       .strict()
       .prefault({}),
@@ -44,6 +40,7 @@ export const configSchema = z
         comments: z.boolean().default(false),
         dm: z.boolean().default(true),
         live: z.boolean().default(false),
+        favorites: z.boolean().default(false),
       })
       .strict()
       .prefault({}),
@@ -100,6 +97,10 @@ export const configSchema = z
   })
   .strict();
 export type Config = z.infer<typeof configSchema>;
-export const validateConfig = (value: unknown) => configSchema.parse(value);
+export const validateConfig = (value: unknown) => {
+  const config = configSchema.parse(value);
+  if (config.persona.body === legacyPersona) config.persona.body = defaultPersona;
+  return config;
+};
 export const defaults = validateConfig({});
 export const readConfig = (store: Store) => validateConfig(store.read('config', {}));

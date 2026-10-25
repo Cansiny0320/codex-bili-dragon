@@ -95,6 +95,12 @@ export async function createHttp(
             : '';
         let result: unknown;
         switch (url.pathname) {
+          case '/api/activity':
+            result = actions.activity(data);
+            break;
+          case '/api/material':
+            result = actions.material(data);
+            break;
           case '/api/tool': {
             const input = data as { name?: unknown; arguments?: unknown };
             const tool = catalog(service).find((item) => item.name === input?.name);

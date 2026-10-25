@@ -14,7 +14,7 @@ import { connectionPath } from '../packages/runtime/src/runtime.js';
 import { version, root } from '../packages/runtime/src/paths.js';
 import { loginFixture } from './login-fixture.js';
 
-test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入日志', async () => {
+test('MCP App 真实 stdio 桥接：九页、素材、行动记录、保存和审核，凭据不进入日志', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-mcp-ui-'));
   const output = process.env.DRAGON_PLUGIN_SCREENSHOTS || path.resolve('work/plugin-ui');
   fs.mkdirSync(output, { recursive: true });
@@ -29,6 +29,17 @@ test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入�
     },
     { fetch: login.fetch },
   );
+  const frameFile = path.join(dir, 'runtime/shots/frame.png');
+  fs.mkdirSync(path.dirname(frameFile), { recursive: true });
+  fs.copyFileSync(path.resolve('assets/icon.png'), frameFile);
+  store.write('evidence', {
+    BV1234567890: {
+      actions: ['subtitles', 'frames'],
+      at: new Date().toISOString(),
+      title: '测试视频',
+      materials: { subtitles: '[00:05] 字幕正文', frames: `SHEET: ${frameFile}` },
+    },
+  });
   store.write('diaries', [
     {
       id: 'local-diary',
@@ -167,6 +178,7 @@ test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入�
     const pages = [
       '首页',
       '观看记录',
+      '行动记录',
       '日记',
       '待我审核',
       '个性与兴趣',
@@ -180,7 +192,7 @@ test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入�
         if (width === 390) await frame.getByRole('button', { name: '打开导航' }).click();
         await frame
           .getByRole('navigation')
-          .getByRole('link', { name: pages[index], exact: index !== 3 })
+          .getByRole('link', { name: pages[index], exact: pages[index] !== '待我审核' })
           .click();
         await frame.getByText('正在加载', { exact: true }).waitFor({ state: 'hidden' });
         assert.deepEqual(await frame.getByRole('alert').allTextContents(), [], pages[index]);
@@ -203,6 +215,16 @@ test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入�
         .getByRole('navigation')
         .getByRole('link', { name, exact: name !== '待我审核' })
         .click();
+    await navigate('观看记录');
+    await frame.getByText('字幕正文', { exact: true }).waitFor();
+    await frame.getByRole('tab', { name: '画面', exact: true }).click();
+    await frame.locator('.material-images img').waitFor();
+    await frame.locator('.material-images img').evaluate(async (image) => {
+      if (!(image instanceof HTMLImageElement)) throw Error('缺少画面');
+      await image.decode();
+      if (!image.naturalWidth) throw Error('图片没有加载');
+    });
+    await page.screenshot({ path: path.join(output, 'material-frames.png') });
     await navigate('个性与兴趣');
     await frame.getByLabel('小白龙的名字', { exact: true }).fill('原生小白龙');
     await frame.getByRole('button', { name: '保存更改' }).click();
@@ -218,6 +240,12 @@ test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入�
     await frame.getByRole('button', { name: '批准发送' }).click();
     await frame.getByText('暂无待审核的消息。').waitFor();
     assert.equal(outgoing.filter((args) => args[0] === 'comment').length, 1);
+    await navigate('行动记录');
+    await frame.getByLabel('行动类型').selectOption('comments');
+    await frame.locator('.activity-row summary').click();
+    await frame.locator('.activity-body').getByText('谢谢分享。', { exact: true }).waitFor();
+    await frame.getByText('已发送', { exact: true }).waitFor();
+    await page.screenshot({ path: path.join(output, 'activity-comment.png') });
     await navigate('账号连接');
     await frame.getByAltText('B 站登录二维码').waitFor();
     assert.equal(await frame.getByLabel('SESSDATA', { exact: true }).isVisible(), false);
@@ -282,12 +310,13 @@ test('MCP App 真实 stdio 桥接：八页、保存和审核，凭据不进入�
     await frame.getByLabel('bili_jct', { exact: true }).fill('b'.repeat(32));
     await frame.getByLabel('buvid3', { exact: true }).fill('mcp-ui-buvid');
     await frame.getByRole('button', { name: '保存凭据' }).click();
+    await frame.getByRole('status').getByText('凭据已保存，活动已暂停', { exact: true }).waitFor();
     await frame.getByRole('heading', { name: '扫码测试账号', exact: true }).waitFor();
     assert.equal(await frame.getByLabel('SESSDATA', { exact: true }).inputValue(), '');
     assert.ok(!JSON.stringify(responses).includes('mcp-ui-secret-must-not-log'));
     assert.ok(!logs.join('\n').includes('mcp-ui-secret-must-not-log'));
     assert.deepEqual(errors, []);
-    console.log('MCP App 八页与真实桥接验证通过。');
+    console.log('MCP App 九页与真实桥接验证通过。');
   } finally {
     await client.close();
     await browser.close();

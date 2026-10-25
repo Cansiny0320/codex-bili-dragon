@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { atomic } from './store.js';
 import type { DragonService } from './service.js';
 import type { Channel, InboxEvent } from './types.js';
-import { errorMessage, errorCode } from './types.js';
+import { errorMessage } from './types.js';
 export class Listeners {
   service: DragonService;
   next: Partial<Record<Channel, number>> = {};
@@ -24,23 +23,6 @@ export class Listeners {
     this.service.queue.add('event:' + event.id, 'message', {
       eventId: event.id,
     });
-    if (event.mid && String(event.mid) === this.service.config().owner.mid) {
-      const file = path.join(this.service.store.dir, '.bili-ai/feedback.json');
-      let state: { last?: string; events?: { at: string; eventId: string; note: string }[] } = {};
-      try {
-        state = JSON.parse(fs.readFileSync(file, 'utf8'));
-      } catch (e) {
-        if (errorCode(e) !== 'ENOENT') throw e;
-      }
-      if (!(state.events ?? []).some((x) => x.eventId === event.id)) {
-        state.last = new Date().toISOString();
-        state.events = [
-          ...(state.events ?? []),
-          { at: state.last, eventId: event.id, note: '收到主人消息' },
-        ].slice(-200);
-        atomic(file, state);
-      }
-    }
   }
   async dm() {
     const r = await this.service.run(['dm-await', '--peek', '--json']);
@@ -62,25 +44,8 @@ export class Listeners {
     if (ack.code !== 0) throw Error('私信已保存但确认失败，下次只重试确认');
   }
   async comments() {
-    const r = await this.service.run(['comment-digest', '--hours', '24', '--pages', '2', '--json']);
-    if (r.code !== 0) throw Error(r.err || '评论读取失败');
-    const data = JSON.parse(r.out) as { ok: boolean; items: (InboxEvent & { kind?: string })[] };
-    if (!data.ok || !Array.isArray(data.items)) throw Error('评论读取不完整，未推进游标');
-    const cursor = this.service.store.read('comment-cursor', null);
-    const ids = data.items.map((e) => String(e.kind ?? 'reply') + ':' + String(e.id ?? e.rpid));
-    if (cursor) {
-      for (let i = 0; i < data.items.length; i++)
-        if (!cursor.ids.includes(ids[i]))
-          this.enqueue({
-            ...data.items[i],
-            mid: String(data.items[i].mid ?? ''),
-            id: 'comment:' + ids[i],
-            channel: 'comments',
-          });
-    }
-    this.service.store.write('comment-cursor', {
-      ids: [...new Set([...(cursor?.ids ?? []), ...ids])].slice(-5000),
-    });
+    if (this.stopped || this.suspended) throw Error('监听已暂停，未确认消息交接');
+    await this.service.checkComments(() => !this.stopped && !this.suspended);
   }
   async live() {
     const c = this.service.config();

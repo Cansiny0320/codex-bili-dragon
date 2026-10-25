@@ -1,6 +1,6 @@
-import { a as stopRuntime, c as credentialsSchema, g as __toESM, h as __commonJSMin, i as requestRuntime, l as redact, m as errorMessage, n as ensureRuntime, r as findRuntime, s as catalog } from "./runtime-C2bi9j3H.js";
+import { _ as __commonJSMin, a as stopRuntime, c as materialInput, d as credentialsSchema, f as redact, g as errorMessage, i as requestRuntime, n as ensureRuntime, r as findRuntime, s as catalog, u as activityInput, v as __toESM } from "./runtime-mPQ0hftG.js";
 import { a as version, n as dataRoot, r as root } from "./paths-5G6hh4eK.js";
-import { C as string, E as toJSONSchema, O as _isoDateTime, S as record, T as unknown, _ as looseObject, b as optional, d as array, f as boolean, g as literal, h as intersection, k as safeParse$1, l as _enum, m as discriminatedUnion, p as custom, r as configSchema, s as ZodISODateTime, u as _null, v as number, w as union, x as preprocess, y as object } from "./policy-2OTaHBvu.js";
+import { C as optional, D as union, E as string, M as safeParse$1, O as unknown, S as object, T as record, _ as discriminatedUnion, b as looseObject, f as _enum, g as custom, h as boolean, j as _isoDateTime, k as toJSONSchema, m as array, p as _null, r as configSchema, u as ZodISODateTime, v as intersection, w as preprocess, x as number, y as literal } from "./policy-umMXvVui.js";
 import path from "node:path";
 import fs from "node:fs";
 import process from "node:process";
@@ -10222,6 +10222,8 @@ const appUri = "ui://bili-dragon/dashboard";
 const empty = object({}).strict();
 const id = object({ id: string().min(1).max(200) }).strict();
 const adminSchemas = {
+	activity: activityInput,
+	material: materialInput,
 	state: empty,
 	config: configSchema,
 	credentials: credentialsSchema,
@@ -10236,6 +10238,8 @@ const adminSchemas = {
 	dismiss: id
 };
 const adminNames = {
+	activity: "查看行动记录",
+	material: "查看已读素材",
 	state: "读取管理页",
 	config: "保存设置",
 	credentials: "保存账号连接",
@@ -10279,7 +10283,9 @@ function createDragonMcp(dir = dataRoot) {
 			eventId,
 			text
 		}),
-		share: (args) => forward("dragon_share", args)
+		share: (args) => forward("dragon_share", args),
+		favorite: (args) => forward("dragon_favorite", args),
+		refreshFeedback: () => forward("dragon_feedback", {})
 	});
 	const open = async () => {
 		await start();
@@ -10355,7 +10361,11 @@ function createDragonMcp(dir = dataRoot) {
 			description: "管理页专用：" + adminNames[action],
 			inputSchema: toJSONSchema(schema),
 			annotations: {
-				readOnlyHint: action === "state",
+				readOnlyHint: [
+					"state",
+					"activity",
+					"material"
+				].includes(action),
 				destructiveHint: action === "approve",
 				openWorldHint: [
 					"approve",

@@ -36,7 +36,11 @@ test('成功读取才缓存素材，旧记录保留且失败不会覆盖已读�
   assert.ok(saved.materials?.comments.includes('真实标题'));
   fail = true;
   assert.equal((await s.read({ action: 'comments', bvid: 'BV1234567890' })).isError, true);
-  assert.deepEqual(s.store.read('evidence', {})['BV1234567890'], saved);
+  const after = s.store.read('evidence', {})['BV1234567890'];
+  assert.deepEqual(after.materials, saved.materials);
+  assert.deepEqual(after.actions, saved.actions);
+  assert.equal(after.at, saved.at);
+  assert.equal(after.attempts?.comments.state, 'failed');
 });
 test('真实文本素材会补取结构化元数据，旧记录补全不改变探索时间', async (t) => {
   const calls: string[][] = [];

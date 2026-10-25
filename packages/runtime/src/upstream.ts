@@ -24,7 +24,7 @@ export function syncUpstream(store: Store, config: Config) {
       path: path.join(store.dir, 'runtime', 'notifications.jsonl'),
     },
     persona: { ...config.persona },
-    self: {},
+    self: { mid: store.read('account', null)?.uid ?? '' },
     aliases: [config.persona.name],
   });
   atomic(path.join(store.dir, '.bili-ai', 'persona.md'), config.persona.body);
@@ -64,6 +64,8 @@ export async function runUpstream(
     feed: 'commands/feed.mjs',
     quota: 'commands/quota.mjs',
     'comment-digest': 'commands/comment-digest.mjs',
+    likes: 'commands/likes.mjs',
+    fav: 'commands/fav.mjs',
     'dm-await': 'commands/dm-await.mjs',
     await: 'commands/danmaku-await.mjs',
     comment: 'commands/comment.mjs',

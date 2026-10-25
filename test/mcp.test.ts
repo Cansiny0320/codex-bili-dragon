@@ -37,12 +37,14 @@ test('真实 MCP stdio 握手、工具发现与拒绝非法参数', async (t) =>
       'dragon_diary',
       'dragon_reply',
       'dragon_share',
+      'dragon_feedback',
+      'dragon_favorite',
       'dragon_open',
       'dragon_control',
     ],
   );
   const admin = list.tools.filter((tool) => tool.name.startsWith('dragon_admin_'));
-  assert.equal(admin.length, 12);
+  assert.equal(admin.length, 14);
   assert.ok(admin.every((tool) => JSON.stringify(tool._meta) === '{"ui":{"visibility":["app"]}}'));
   const sidebar = list.tools.find((tool) => tool.name === 'dragon_sidebar')!;
   assert.deepEqual(sidebar._meta?.['openai/ui'], { entrypoints: [{ type: 'global' }] });

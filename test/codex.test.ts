@@ -143,3 +143,35 @@ test('动态工具注册、禁用宿主 MCP；提前到达的完成事件不丢�
   assert.ok(rpc2.calls.some((x) => x.method === 'thread/resume'));
   await session2.stop();
 });
+
+test('旧会话缺少新工具时重新注册，活跃连接每轮仍读取最新人设', async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-persona-session-'));
+  t.onTestFinished(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const service = new DragonService(new Store(dir));
+  service.store.write('codex-session', { threadId: 'old-tool-contract' });
+  service.saveConfig({
+    ...service.config(),
+    codexPath: 'fake-codex',
+    persona: { ...service.config().persona, body: '我只看木工制作过程。' },
+  });
+  const rpc = new Fake();
+  const session = new CodexSession(service, async () => rpc);
+  await session.run({ id: 'message-1', type: 'message', payload: { eventId: 'one' } });
+  assert.ok(!rpc.calls.some((call) => call.method === 'thread/resume'));
+  const start = rpc.calls.find((call) => call.method === 'thread/start')!.params as {
+    dynamicTools: { name: string }[];
+  };
+  assert.ok(start.dynamicTools.some((tool) => tool.name === 'dragon_favorite'));
+  service.saveConfig({
+    ...service.config(),
+    persona: { ...service.config().persona, body: '我现在更喜欢做饭。' },
+  });
+  await session.run({ id: 'message-2', type: 'message', payload: { eventId: 'two' } });
+  const turns = rpc.calls
+    .filter((call) => call.method === 'turn/start')
+    .map((call) => JSON.stringify(call.params.input));
+  assert.match(turns[0], /木工制作过程/);
+  assert.match(turns[1], /更喜欢做饭/);
+  assert.doesNotMatch(turns[1], /木工制作过程/);
+  await session.stop();
+});

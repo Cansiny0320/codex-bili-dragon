@@ -5,6 +5,7 @@ var tsrStartManifest = () => ({ routes: {
 		children: [
 			"/",
 			"/account",
+			"/activity",
 			"/diary",
 			"/permissions",
 			"/personality",
@@ -13,24 +14,24 @@ var tsrStartManifest = () => ({ routes: {
 			"/videos"
 		],
 		preloads: [
-			"/assets/index-CpZZpUSm.js",
+			"/assets/index-BfmhpPMl.js",
 			"/assets/rolldown-runtime-WkwZ5CU-.js",
 			"/assets/createLucideIcon-B4aXUhJJ.js"
 		],
 		scripts: [{ attrs: {
 			type: "module",
 			async: !0,
-			src: "/assets/index-CpZZpUSm.js"
+			src: "/assets/index-BfmhpPMl.js"
 		} }]
 	},
 	"/": {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/index.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/routes-BAi11XiL.js",
-			"/assets/tabs-ws4sd_o8.js",
+			"/assets/routes-jQ70bhI1.js",
+			"/assets/tabs-CkytjnV3.js",
 			"/assets/common-Bi6onMw5.js",
-			"/assets/useOpenChangeComplete-C7XQn5Hb.js",
+			"/assets/useOpenChangeComplete-DXwy4txn.js",
 			"/assets/mail-D6NFAESt.js",
 			"/assets/message-square-D_Y87FcB.js"
 		]
@@ -39,28 +40,37 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/account.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/account-CSctAwf3.js",
+			"/assets/account-CBkmn3rk.js",
 			"/assets/native-select-C1QSnca5.js",
 			"/assets/common-Bi6onMw5.js",
-			"/assets/collapsible-CUwPPenH.js",
-			"/assets/useOpenChangeComplete-C7XQn5Hb.js"
+			"/assets/collapsible-Dt3DQhYA.js",
+			"/assets/useOpenChangeComplete-DXwy4txn.js"
+		]
+	},
+	"/activity": {
+		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/activity.tsx",
+		children: void 0,
+		preloads: [
+			"/assets/activity-BYUL9FLS.js",
+			"/assets/native-select-C1QSnca5.js",
+			"/assets/common-Bi6onMw5.js"
 		]
 	},
 	"/diary": {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/diary.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/diary-BP75Tkbi.js",
-			"/assets/tabs-ws4sd_o8.js",
+			"/assets/diary-DTM5TTRY.js",
+			"/assets/tabs-CkytjnV3.js",
 			"/assets/common-Bi6onMw5.js",
-			"/assets/useOpenChangeComplete-C7XQn5Hb.js"
+			"/assets/useOpenChangeComplete-DXwy4txn.js"
 		]
 	},
 	"/permissions": {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/permissions.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/permissions-C2-PdqqG.js",
+			"/assets/permissions-SCK1qTCs.js",
 			"/assets/native-select-C1QSnca5.js",
 			"/assets/common-Bi6onMw5.js",
 			"/assets/mail-D6NFAESt.js",
@@ -71,7 +81,7 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/personality.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/personality-Ch1YGN5i.js",
+			"/assets/personality-xFvL1wXX.js",
 			"/assets/common-Bi6onMw5.js",
 			"/assets/plus-Dq4iMhnc.js"
 		]
@@ -80,10 +90,10 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/review.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/review-B3FE7m9c.js",
-			"/assets/tabs-ws4sd_o8.js",
+			"/assets/review-d38rdr-H.js",
+			"/assets/tabs-CkytjnV3.js",
 			"/assets/common-Bi6onMw5.js",
-			"/assets/useOpenChangeComplete-C7XQn5Hb.js",
+			"/assets/useOpenChangeComplete-DXwy4txn.js",
 			"/assets/native-select-C1QSnca5.js"
 		]
 	},
@@ -91,24 +101,24 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/schedule.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/schedule-HUxZNFVA.js",
+			"/assets/schedule-JuF1WXO8.js",
 			"/assets/native-select-C1QSnca5.js",
 			"/assets/common-Bi6onMw5.js",
 			"/assets/plus-Dq4iMhnc.js",
-			"/assets/useOpenChangeComplete-C7XQn5Hb.js",
-			"/assets/collapsible-CUwPPenH.js"
+			"/assets/useOpenChangeComplete-DXwy4txn.js",
+			"/assets/collapsible-Dt3DQhYA.js"
 		]
 	},
 	"/videos": {
 		filePath: "D:/code/codex-bili-dragon/apps/dashboard/src/routes/videos.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/videos--OFdqEA1.js",
-			"/assets/tabs-ws4sd_o8.js",
+			"/assets/videos-BlTQIbaI.js",
+			"/assets/tabs-CkytjnV3.js",
 			"/assets/common-Bi6onMw5.js",
-			"/assets/useOpenChangeComplete-C7XQn5Hb.js",
+			"/assets/useOpenChangeComplete-DXwy4txn.js",
 			"/assets/message-square-D_Y87FcB.js",
-			"/assets/collapsible-CUwPPenH.js"
+			"/assets/collapsible-Dt3DQhYA.js"
 		]
 	}
 } });

@@ -1,10 +1,27 @@
 import { o as require_jsx_runtime } from "./matchContext-Bm7-ArXH.js";
-import { k as useSettings } from "./createLucideIcon-BmtKeUIw.js";
+import { k as useSettings, t as createLucideIcon } from "./createLucideIcon-BmtKeUIw.js";
 import { n as NativeSelectOption, t as NativeSelect } from "./native-select-DbcBliUc.js";
 import { a as Loading, f as Input, i as Field, l as StatusBar, o as Panel, s as SaveBar, u as Toggle } from "./common-BEruSkQj.js";
 import { t as Mail } from "./mail-cNZMDL23.js";
 import { t as MessageSquare } from "./message-square-Dd8LBsos.js";
-import { s as CirclePlay } from "./router-Dzj4kQME.js";
+import { s as CirclePlay } from "./router-CjPl97NY.js";
+// ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/bookmark.mjs
+/**
+* @license lucide-react v1.61.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData = {
+	name: "bookmark",
+	size: 24,
+	node: [["path", {
+		d: "M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z",
+		key: "oz39mx"
+	}]]
+};
+__iconData.node;
+var Bookmark = createLucideIcon(__iconData);
 // src/routes/permissions.tsx?tsr-split=component
 var import_jsx_runtime = require_jsx_runtime();
 function Permissions() {
@@ -39,6 +56,11 @@ function Permissions() {
 							CirclePlay,
 							"发送直播弹幕",
 							"live"
+						],
+						[
+							Bookmark,
+							"自动收藏",
+							"favorites"
 						]
 					].map(([Icon, label, key]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "permission-row",

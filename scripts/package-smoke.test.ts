@@ -9,7 +9,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { version } from '../packages/runtime/src/paths.js';
 
-test('预构建 ZIP 在无 node_modules 的独立目录直接运行 MCP、后台和八页管理界面', async () => {
+test('预构建 ZIP 在无 node_modules 的独立目录直接运行 MCP、后台和九页管理界面', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-package-'));
   const plugin = path.join(dir, 'plugin'),
     data = path.join(dir, 'data');
@@ -46,6 +46,7 @@ test('预构建 ZIP 在无 node_modules 的独立目录直接运行 MCP、后台
     for (const route of [
       '/',
       '/videos',
+      '/activity',
       '/diary',
       '/review',
       '/personality',

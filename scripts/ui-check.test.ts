@@ -9,7 +9,7 @@ import { DragonService } from '../packages/runtime/src/service.js';
 import { createHttp } from '../packages/runtime/src/http.js';
 import { loginFixture } from './login-fixture.js';
 
-test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用替身', async () => {
+test('九页桌面/窄屏布局、素材和行动记录真实 oRPC 交互，所有外部操作使用替身', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-ui-'));
   const output = process.env.DRAGON_SCREENSHOTS || path.resolve('work/ui-screenshots');
   fs.mkdirSync(output, { recursive: true });
@@ -30,6 +30,9 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     preferences: { like: ['科技', '有趣知识', '自然', '音乐'], dislike: ['标题党', '引战'] },
   });
   const now = new Date().toISOString();
+  const frameFile = path.join(dir, 'runtime/shots/frame.png');
+  fs.mkdirSync(path.dirname(frameFile), { recursive: true });
+  fs.copyFileSync(path.resolve('assets/icon.png'), frameFile);
   const titles = [
     '深海为什么会发光？',
     '把日常声音变成一首歌',
@@ -50,12 +53,39 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
           actions: ['subtitles', 'comments', 'frames'],
           at: now,
           materials: {
-            subtitles: '00:00 今天一起认识这个有趣的问题。\n00:26 从日常观察开始，理解背后的原理。',
-            comments: '观众：这个解释很清楚，希望继续分享。',
+            subtitles:
+              '标题: 测试\n字幕行数: 20\nJSON : C:\\private\\subs.json\n--- 前 2 行 ---\n[00:00] 今天一起认识这个有趣的问题。\n[00:26] 从日常观察开始，理解背后的原理。',
+            comments: JSON.stringify({
+              ok: true,
+              total: 12,
+              items: [
+                { rpid: '123', user: '观众', text: '这个解释很清楚，希望继续分享。', like: 7 },
+              ],
+            }),
+            frames: `时间点  : 1=00:20\nSHEET: ${frameFile}`,
           },
         },
       ]),
     ),
+  );
+  store.write(
+    'activities',
+    Array.from({ length: 35 }, (_, i) => ({
+      id: 'fixture-' + i,
+      at: now,
+      action: i === 0 ? 'share' : 'search',
+      source: 'autonomous' as const,
+      state: 'success' as const,
+      summary: i === 0 ? '分享视频' : '搜索：自然 ' + i,
+      ...(i === 0
+        ? {
+            channel: 'dm' as const,
+            text: '这是完整私信正文。'.repeat(15) + '私信结束标记',
+            targetMid: '10001',
+            targetName: '你',
+          }
+        : {}),
+    })),
   );
   store.write(
     'diaries',
@@ -176,6 +206,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     const routes = [
       '/',
       '/videos',
+      '/activity',
       '/diary',
       '/review',
       '/personality',
@@ -225,6 +256,21 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
       await checkLayout(page, (route.slice(1) || 'home') + '-desktop');
     }
     await page.goto(http.origin + '/videos');
+    await page.getByText('读到了 2 行，字幕共 20 行。').waitFor();
+    assert.equal(
+      await page.locator('.materials-panel').getByText('JSON :', { exact: false }).count(),
+      0,
+    );
+    await page.getByRole('tab', { name: '评论', exact: true }).click();
+    await page.locator('.material-comments').getByText('这个解释很清楚，希望继续分享。').waitFor();
+    assert.equal(
+      await page.getByRole('tab', { name: '评论', exact: true }).getAttribute('aria-selected'),
+      'true',
+    );
+    await page.screenshot({
+      path: path.join(output, 'material-comments.png'),
+      animations: 'disabled',
+    });
     await page.getByRole('tab', { name: '字幕', exact: true }).focus();
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Enter');
@@ -232,6 +278,24 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
       await page.getByRole('tab', { name: '画面', exact: true }).getAttribute('aria-selected'),
       'true',
     );
+    await page.locator('.material-images img').waitFor();
+    await page.waitForFunction(() => {
+      const image = document.querySelector('.material-images img');
+      return image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0;
+    });
+    await page.screenshot({ path: path.join(output, 'material-frames.png') });
+    await page.goto(http.origin + '/activity');
+    await page.locator('.activity-row').first().waitFor();
+    await page.getByRole('button', { name: '下一页', exact: true }).click();
+    await page.getByText(/^31–/).waitFor();
+    await page.getByLabel('行动类型').selectOption('dm');
+    await page.locator('.activity-row summary').click();
+    await page.getByText('私信结束标记', { exact: false }).waitFor();
+    assert.equal(
+      await page.locator('.activity-body').innerText(),
+      '这是完整私信正文。'.repeat(15) + '私信结束标记',
+    );
+    await page.screenshot({ path: path.join(output, 'activity-dm.png') });
     await page.goto(http.origin + '/schedule');
     const windowCheckbox = page.getByRole('checkbox', { name: '启用时段1', exact: true });
     await windowCheckbox.uncheck();
@@ -269,9 +333,24 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     assert.equal(calls.length, 0);
     await page.goto(http.origin + '/permissions');
     await page.getByRole('switch', { name: '发送评论', exact: true }).click();
+    assert.equal(
+      await page
+        .getByRole('switch', { name: '自动收藏', exact: true })
+        .getAttribute('aria-checked'),
+      'false',
+    );
+    await page.getByRole('switch', { name: '自动收藏', exact: true }).click();
     await page.getByRole('button', { name: '保存更改' }).click();
     await page.getByRole('status').waitFor();
     assert.equal(service.config().permissions.comments, true);
+    assert.equal(service.config().permissions.favorites, true);
+    await page.reload();
+    assert.equal(
+      await page
+        .getByRole('switch', { name: '自动收藏', exact: true })
+        .getAttribute('aria-checked'),
+      'true',
+    );
     await page.goto(http.origin + '/review');
     await page.getByRole('button', { name: '批准发送' }).click();
     await page.waitForFunction(() => document.querySelectorAll('.review-list-item').length === 1);

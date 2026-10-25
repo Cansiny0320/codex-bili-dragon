@@ -5,6 +5,7 @@ import {
   House,
   PlayCircle,
   NotebookText,
+  History,
   SquareCheck,
   Heart,
   Clock,
@@ -19,6 +20,7 @@ import { useDashboard } from '../lib/state';
 const items = [
   ['/', '首页', House],
   ['/videos', '观看记录', PlayCircle],
+  ['/activity', '行动记录', History],
   ['/diary', '日记', NotebookText],
   ['/review', '待我审核', SquareCheck],
   ['/personality', '个性与兴趣', Heart],

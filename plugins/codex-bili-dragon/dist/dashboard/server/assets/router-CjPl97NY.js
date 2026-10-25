@@ -449,7 +449,7 @@ function useRouteContext(opts) {
 }
 // ../../node_modules/.pnpm/@tanstack+react-router@1.17_e16e07e4fd54e4e259681370207791aa/node_modules/@tanstack/react-router/dist/esm/route.js
 var import_jsx_runtime = require_jsx_runtime();
-var Route$9 = class extends BaseRoute {
+var Route$10 = class extends BaseRoute {
 	/**
 	* @deprecated Use the `createRoute` function instead.
 	*/
@@ -515,7 +515,7 @@ var Route$9 = class extends BaseRoute {
 * @link https://tanstack.com/router/latest/docs/framework/react/api/router/createRouteFunction
 */
 function createRoute(options) {
-	return new Route$9(options);
+	return new Route$10(options);
 }
 var RootRoute = class extends BaseRootRoute {
 	/**
@@ -966,7 +966,7 @@ function renderScripts(scripts) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$10 = {
+var __iconData$11 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -993,8 +993,8 @@ var __iconData$10 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$10.node;
-var CircleAlert = createLucideIcon(__iconData$10);
+__iconData$11.node;
+var CircleAlert = createLucideIcon(__iconData$11);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/circle-play.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1002,7 +1002,7 @@ var CircleAlert = createLucideIcon(__iconData$10);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$9 = {
+var __iconData$10 = {
 	name: "circle-play",
 	size: 24,
 	node: [["path", {
@@ -1016,8 +1016,8 @@ var __iconData$9 = {
 	}]],
 	aliases: ["play-circle"]
 };
-__iconData$9.node;
-var CirclePlay = createLucideIcon(__iconData$9);
+__iconData$10.node;
+var CirclePlay = createLucideIcon(__iconData$10);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/clock.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1025,7 +1025,7 @@ var CirclePlay = createLucideIcon(__iconData$9);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$8 = {
+var __iconData$9 = {
 	name: "clock",
 	size: 24,
 	node: [["circle", {
@@ -1038,8 +1038,8 @@ var __iconData$8 = {
 		key: "mmk7yg"
 	}]]
 };
-__iconData$8.node;
-var Clock = createLucideIcon(__iconData$8);
+__iconData$9.node;
+var Clock = createLucideIcon(__iconData$9);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/heart.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1047,7 +1047,7 @@ var Clock = createLucideIcon(__iconData$8);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$7 = {
+var __iconData$8 = {
 	name: "heart",
 	size: 24,
 	node: [["path", {
@@ -1055,8 +1055,8 @@ var __iconData$7 = {
 		key: "mvr1a0"
 	}]]
 };
-__iconData$7.node;
-var Heart = createLucideIcon(__iconData$7);
+__iconData$8.node;
+var Heart = createLucideIcon(__iconData$8);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/house.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1064,7 +1064,7 @@ var Heart = createLucideIcon(__iconData$7);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$6 = {
+var __iconData$7 = {
 	name: "house",
 	size: 24,
 	node: [["path", {
@@ -1076,8 +1076,8 @@ var __iconData$6 = {
 	}]],
 	aliases: ["home"]
 };
-__iconData$6.node;
-var House = createLucideIcon(__iconData$6);
+__iconData$7.node;
+var House = createLucideIcon(__iconData$7);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/link-2.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1085,7 +1085,7 @@ var House = createLucideIcon(__iconData$6);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$5 = {
+var __iconData$6 = {
 	name: "link-2",
 	size: 24,
 	node: [
@@ -1106,8 +1106,8 @@ var __iconData$5 = {
 		}]
 	]
 };
-__iconData$5.node;
-var Link2 = createLucideIcon(__iconData$5);
+__iconData$6.node;
+var Link2 = createLucideIcon(__iconData$6);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/menu.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1115,7 +1115,7 @@ var Link2 = createLucideIcon(__iconData$5);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$4 = {
+var __iconData$5 = {
 	name: "menu",
 	size: 24,
 	node: [
@@ -1133,8 +1133,8 @@ var __iconData$4 = {
 		}]
 	]
 };
-__iconData$4.node;
-var Menu = createLucideIcon(__iconData$4);
+__iconData$5.node;
+var Menu = createLucideIcon(__iconData$5);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/notebook-text.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1142,7 +1142,7 @@ var Menu = createLucideIcon(__iconData$4);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$3 = {
+var __iconData$4 = {
 	name: "notebook-text",
 	size: 24,
 	node: [
@@ -1184,8 +1184,36 @@ var __iconData$3 = {
 		}]
 	]
 };
+__iconData$4.node;
+var NotebookText = createLucideIcon(__iconData$4);
+// ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/rotate-ccw-clock.mjs
+/**
+* @license lucide-react v1.61.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$3 = {
+	name: "rotate-ccw-clock",
+	size: 24,
+	node: [
+		["path", {
+			d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8",
+			key: "1357e3"
+		}],
+		["path", {
+			d: "M3 3v5h5",
+			key: "1xhq8a"
+		}],
+		["path", {
+			d: "M12 7v5l4 2",
+			key: "1fdv2h"
+		}]
+	],
+	aliases: ["history"]
+};
 __iconData$3.node;
-var NotebookText = createLucideIcon(__iconData$3);
+var RotateCcwClock = createLucideIcon(__iconData$3);
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 /**
 * @license lucide-react v1.61.0 - ISC
@@ -1264,6 +1292,11 @@ var items = [
 		"/videos",
 		"观看记录",
 		CirclePlay
+	],
+	[
+		"/activity",
+		"行动记录",
+		RotateCcwClock
 	],
 	[
 		"/diary",
@@ -1384,9 +1417,9 @@ function Shell({ children }) {
 	});
 }
 // src/styles.css?url
-var styles_default = "/assets/styles-DNW5GaBi.css";
+var styles_default = "/assets/styles-amjbsLXf.css";
 // src/routes/__root.tsx
-var Route$8 = createRootRoute({
+var Route$9 = createRootRoute({
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
@@ -1407,76 +1440,84 @@ var Route$8 = createRootRoute({
 	})
 });
 // src/routes/index.tsx
-var $$splitComponentImporter$7 = () => import("./routes-DK4dWn59.js");
-var Route$7 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$7, "component") });
+var $$splitComponentImporter$8 = () => import("./routes-7hRrLklc.js");
+var Route$8 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$8, "component") });
 // src/routes/account.tsx
-var $$splitComponentImporter$6 = () => import("./account-BSRrPWpV.js");
-var Route$6 = createFileRoute("/account")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
+var $$splitComponentImporter$7 = () => import("./account-BSRrPWpV.js");
+var Route$7 = createFileRoute("/account")({ component: lazyRouteComponent($$splitComponentImporter$7, "component") });
+// src/routes/activity.tsx
+var $$splitComponentImporter$6 = () => import("./activity-BJ8YZdBO.js");
+var Route$6 = createFileRoute("/activity")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
 // src/routes/diary.tsx
-var $$splitComponentImporter$5 = () => import("./diary-fo9FlOu6.js");
+var $$splitComponentImporter$5 = () => import("./diary-DGDBIv3a.js");
 var Route$5 = createFileRoute("/diary")({ component: lazyRouteComponent($$splitComponentImporter$5, "component") });
 // src/routes/permissions.tsx
-var $$splitComponentImporter$4 = () => import("./permissions-vgpypR_P.js");
+var $$splitComponentImporter$4 = () => import("./permissions-tfjZSW_k.js");
 var Route$4 = createFileRoute("/permissions")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
 // src/routes/personality.tsx
-var $$splitComponentImporter$3 = () => import("./personality-DK8EgZi3.js");
+var $$splitComponentImporter$3 = () => import("./personality-BFKAb03m.js");
 var Route$3 = createFileRoute("/personality")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
 // src/routes/review.tsx
-var $$splitComponentImporter$2 = () => import("./review-BBcRE1HP.js");
+var $$splitComponentImporter$2 = () => import("./review-Dj0QbqNW.js");
 var Route$2 = createFileRoute("/review")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
 // src/routes/schedule.tsx
 var $$splitComponentImporter$1 = () => import("./schedule-WOpo4tJs.js");
 var Route$1 = createFileRoute("/schedule")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
 // src/routes/videos.tsx
-var $$splitComponentImporter = () => import("./videos-DFCmUnsP.js");
+var $$splitComponentImporter = () => import("./videos--v9CNMi9.js");
 var Route = createFileRoute("/videos")({
 	validateSearch: (search) => ({ bv: typeof search.bv === "string" ? search.bv : void 0 }),
 	component: lazyRouteComponent($$splitComponentImporter, "component")
 });
 // src/routeTree.gen.ts
 var rootRouteChildren = {
-	IndexRoute: Route$7.update({
+	IndexRoute: Route$8.update({
 		id: "/",
 		path: "/",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	}),
-	AccountRoute: Route$6.update({
+	AccountRoute: Route$7.update({
 		id: "/account",
 		path: "/account",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
+	}),
+	ActivityRoute: Route$6.update({
+		id: "/activity",
+		path: "/activity",
+		getParentRoute: () => Route$9
 	}),
 	DiaryRoute: Route$5.update({
 		id: "/diary",
 		path: "/diary",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	}),
 	PermissionsRoute: Route$4.update({
 		id: "/permissions",
 		path: "/permissions",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	}),
 	PersonalityRoute: Route$3.update({
 		id: "/personality",
 		path: "/personality",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	}),
 	ReviewRoute: Route$2.update({
 		id: "/review",
 		path: "/review",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	}),
 	ScheduleRoute: Route$1.update({
 		id: "/schedule",
 		path: "/schedule",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	}),
 	VideosRoute: Route.update({
 		id: "/videos",
 		path: "/videos",
-		getParentRoute: () => Route$8
+		getParentRoute: () => Route$9
 	})
 };
-var routeTree = Route$8._addFileChildren(rootRouteChildren)._addFileTypes();
+var routeTree = Route$9._addFileChildren(rootRouteChildren)._addFileTypes();
 // src/router.tsx
 var router_exports = /* @__PURE__ */ __exportAll({ getRouter: () => getRouter });
 function getRouter() {

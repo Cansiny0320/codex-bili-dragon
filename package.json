@@ -1,6 +1,6 @@
 {
   "name": "codex-bili-dragon",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "Codex Bili Dragon — a local Bilibili companion with a daily rhythm, diaries and reviewed interactions",
   "license": "MIT",
@@ -18,7 +18,8 @@
     "package": "node --experimental-strip-types scripts/package.ts",
     "package:marketplace": "node --experimental-strip-types scripts/prepare-marketplace.ts",
     "test:ui": "vp test run --config scripts/ui.vite.config.ts",
-    "test:package": "vp test run --config scripts/package.vite.config.ts"
+    "test:package": "vp test run --config scripts/package.vite.config.ts",
+    "test:behavior": "vp test run --config scripts/behavior.vite.config.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

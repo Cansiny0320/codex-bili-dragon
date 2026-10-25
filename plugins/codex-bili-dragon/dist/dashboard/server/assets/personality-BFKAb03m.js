@@ -3,7 +3,7 @@ import { L as require_react, o as require_jsx_runtime } from "./matchContext-Bm7
 import { O as useDashboard, k as useSettings, n as Button, r as cn } from "./createLucideIcon-BmtKeUIw.js";
 import { a as Loading, f as Input, i as Field, o as Panel, s as SaveBar } from "./common-BEruSkQj.js";
 import { t as Plus } from "./plus-Bggrmnyj.js";
-import { i as NotebookText, r as X } from "./router-Dzj4kQME.js";
+import { i as NotebookText, r as X } from "./router-CjPl97NY.js";
 // src/components/ui/textarea.tsx
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var import_jsx_runtime = require_jsx_runtime();

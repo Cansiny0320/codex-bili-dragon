@@ -24,6 +24,8 @@ export function createAppClient(app: Pick<App, 'callServerTool'>): AdminClient {
     return result.structuredContent.result as T;
   }
   return {
+    activity: (input) => call('activity', input),
+    material: (input) => call('material', input),
     state: () => call<AdminState>('state'),
     config: (input) => call('config', input),
     credentials: (input) => call('credentials', input),

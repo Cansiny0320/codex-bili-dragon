@@ -7,10 +7,17 @@ import { configSchema } from './config.js';
 import { errorMessage } from './types.js';
 import { redact } from './upstream.js';
 import { credentialsSchema } from './login.js';
+import { activityInput } from './activity.js';
+import { materialInput, materialView } from './materials.js';
 
 export type DaemonControl = Pick<Daemon, 'pause' | 'tick' | 'error'>;
 export function createActions(service: DragonService, daemon: DaemonControl) {
   return {
+    activity: (input: unknown) => service.activity.list(activityInput.parse(input)),
+    material: (input: unknown) => {
+      const value = materialInput.parse(input);
+      return materialView(service.store, value.bvid, value.kind);
+    },
     state: () => ({
       ...service.status(),
       config: service.config(),
@@ -40,8 +47,10 @@ export function createActions(service: DragonService, daemon: DaemonControl) {
       await daemon.pause();
       return { paused: true };
     },
-    approve: (id: string) => service.approve(id),
-    reject: (id: string) => service.reject(id),
+    approve: (id: string) =>
+      service.activity.run('approve', { id }, { source: 'manual' }, () => service.approve(id)),
+    reject: (id: string) =>
+      service.activity.run('reject', { id }, { source: 'manual' }, () => service.reject(id)),
     dismiss: (id: string) => {
       const job = service.queue.list().find((j) => j.id === id);
       if (!job || !['needs-review', 'pending'].includes(job.state))
@@ -65,6 +74,8 @@ export function createApi(service: DragonService, daemon: DaemonControl) {
   const id = z.object({ id: z.string().min(1) }).strict();
   const loginHandle = z.object({ handle: z.string().uuid() }).strict();
   return {
+    activity: base.input(activityInput).handler(({ input }) => actions.activity(input)),
+    material: base.input(materialInput).handler(({ input }) => actions.material(input)),
     state: base.handler(() => actions.state()),
     config: base.input(configSchema).handler(({ input }) => actions.config(input)),
     credentials: base.input(credentialsSchema).handler(({ input }) => actions.credentials(input)),

@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { dataRoot } from './paths.js';
 import { validateConfig, type Config } from './config.js';
-import type { Channel } from './types.js';
-export function assertChannel(config: Config, channel: Channel) {
+import type { WriteChannel } from './types.js';
+export function assertChannel(config: Config, channel: WriteChannel) {
   if (config.permissions?.[channel] !== true) throw Error('该发送通道未启用：' + channel);
 }
 export function assertVendorWrite(input: string | URL | Request, options: RequestInit = {}) {
@@ -17,11 +17,13 @@ export function assertVendorWrite(input: string | URL | Request, options: Reques
     comments: ['api.bilibili.com/x/v2/reply/add'],
     dm: ['api.vc.bilibili.com/web_im/v1/web_im/send_msg'],
     live: ['api.live.bilibili.com/msg/send'],
+    favorites: ['api.bilibili.com/x/v3/fav/resource/deal'],
   };
   if (url.protocol !== 'https:' || !channel || !routes[channel]?.includes(url.host + url.pathname))
     throw Error('当前工具没有该外部写入权限');
   const config = validateConfig(
     JSON.parse(fs.readFileSync(path.join(dataRoot, 'config.json'), 'utf8')),
   );
-  assertChannel(config, channel as Channel);
+  if (channel === 'favorites' && method !== 'POST') throw Error('收藏仅允许添加操作');
+  assertChannel(config, channel as WriteChannel);
 }

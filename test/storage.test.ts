@@ -20,7 +20,7 @@ test('corrupt state fails closed and atomic updates retain data', (t) => {
 test('默认只启用私信权限，保留明确关闭；拒绝无效时区和未知配置', () => {
   const c = validateConfig({});
   assert.equal(c.enabled, false);
-  assert.deepEqual(c.permissions, { comments: false, dm: true, live: false });
+  assert.deepEqual(c.permissions, { comments: false, dm: true, live: false, favorites: false });
   assert.equal(validateConfig({ permissions: { dm: false } }).permissions.dm, false);
   assert.throws(() => validateConfig({ timezone: 'made/up' }));
   assert.throws(() =>

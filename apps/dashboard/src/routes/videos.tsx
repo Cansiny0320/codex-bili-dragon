@@ -6,6 +6,7 @@ import { Search, FileText, Image, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { useDashboard, videosFrom, formatTime } from '../lib/state';
 import { Panel, Empty, Loading, Cover, Input, BiliLink } from '../components/common';
+import { MaterialContent } from '../components/material';
 export const Route = createFileRoute('/videos')({
   validateSearch: (search: Record<string, unknown>) => ({
     bv: typeof search.bv === 'string' ? search.bv : undefined,
@@ -17,7 +18,7 @@ function Videos() {
   const { bv } = Route.useSearch();
   const [query, setQuery] = useState(''),
     [selected, setSelected] = useState(bv ?? ''),
-    [material, setMaterial] = useState('subtitles');
+    [material, setMaterial] = useState<'subtitles' | 'frames' | 'comments'>('subtitles');
   if (!state) return loading ? <Loading /> : null;
   const all = videosFrom(state),
     filtered = all.filter((v) => (v.title + v.bvid).toLowerCase().includes(query.toLowerCase()));
@@ -88,7 +89,10 @@ function Videos() {
             </Panel>
             <Panel className="materials-panel">
               <h2>小白龙读到的内容</h2>
-              <Tabs value={material} onValueChange={(value) => setMaterial(String(value))}>
+              <Tabs
+                value={material}
+                onValueChange={(value) => setMaterial(value as typeof material)}
+              >
                 <TabsList variant="line" className="mb-3">
                   {actions.map(([key, label]) => (
                     <TabsTrigger key={key} value={key}>
@@ -97,22 +101,19 @@ function Videos() {
                   ))}
                 </TabsList>
                 <TabsContent value={material}>
-                  {video.materials?.[material] ? (
-                    <pre className="material-text">{video.materials[material]}</pre>
-                  ) : (
-                    <Empty>
-                      {video.actions.includes(material)
-                        ? '这条历史记录未保存素材正文。'
-                        : '尚未读取这类素材。'}
-                    </Empty>
-                  )}
+                  <MaterialContent
+                    key={video.bvid + material}
+                    bvid={video.bvid}
+                    kind={material}
+                    revision={video.attempts?.[material]?.at ?? video.at}
+                  />
                 </TabsContent>
               </Tabs>
               {video.materials?.debrief && (
                 <Collapsible>
                   <CollapsibleTrigger className="disclosure-trigger">查看简报</CollapsibleTrigger>
                   <CollapsibleContent>
-                    <pre className="material-text">{video.materials.debrief}</pre>
+                    <MaterialContent bvid={video.bvid} kind="debrief" revision={video.at} />
                   </CollapsibleContent>
                 </Collapsible>
               )}

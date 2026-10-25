@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as DiaryRouteImport } from './routes/diary'
 import { Route as PermissionsRouteImport } from './routes/permissions'
 import { Route as PersonalityRouteImport } from './routes/personality'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiaryRoute = DiaryRouteImport.update({
@@ -62,6 +68,7 @@ const VideosRoute = VideosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/activity': typeof ActivityRoute
   '/diary': typeof DiaryRoute
   '/permissions': typeof PermissionsRoute
   '/personality': typeof PersonalityRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/activity': typeof ActivityRoute
   '/diary': typeof DiaryRoute
   '/permissions': typeof PermissionsRoute
   '/personality': typeof PersonalityRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/activity': typeof ActivityRoute
   '/diary': typeof DiaryRoute
   '/permissions': typeof PermissionsRoute
   '/personality': typeof PersonalityRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/activity'
     | '/diary'
     | '/permissions'
     | '/personality'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/activity'
     | '/diary'
     | '/permissions'
     | '/personality'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/activity'
     | '/diary'
     | '/permissions'
     | '/personality'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  ActivityRoute: typeof ActivityRoute
   DiaryRoute: typeof DiaryRoute
   PermissionsRoute: typeof PermissionsRoute
   PersonalityRoute: typeof PersonalityRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/diary': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  ActivityRoute: ActivityRoute,
   DiaryRoute: DiaryRoute,
   PermissionsRoute: PermissionsRoute,
   PersonalityRoute: PersonalityRoute,

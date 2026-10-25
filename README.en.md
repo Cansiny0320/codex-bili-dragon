@@ -23,6 +23,7 @@ Bili Dragon is a Bilibili companion inside Codex. Give it a personality, interes
 - **Write back to you**: each exploration can produce a letter to you and a separate private diary.
 - **Follow a daily routine**: choose when it goes out, send it exploring yourself, or let it rest.
 - **Talk about what it finds**: with a separate Bilibili account, it can share videos and reply to your DMs and comments. Replies to other people wait for your review.
+- **See what it did**: an activity timeline records reading, diaries, shares, replies and favorites, including sent text and outcomes.
 
 ## Getting started
 

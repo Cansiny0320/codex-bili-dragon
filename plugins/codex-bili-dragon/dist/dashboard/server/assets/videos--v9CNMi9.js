@@ -4,7 +4,7 @@ import { A as videosFrom, D as formatTime, O as useDashboard, n as Button, t as 
 import { i as TabsTrigger, n as TabsContent, r as TabsList, t as Tabs } from "./tabs-DiMSKtwS.js";
 import { a as Loading, f as Input, n as Cover, o as Panel, r as Empty, t as BiliLink } from "./common-BEruSkQj.js";
 import { t as MessageSquare } from "./message-square-Dd8LBsos.js";
-import { n as Route } from "./router-Dzj4kQME.js";
+import { n as Route } from "./router-CjPl97NY.js";
 import { n as CollapsibleContent, r as CollapsibleTrigger, t as Collapsible } from "./collapsible-DY5CxP_-.js";
 // ../../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -97,9 +97,87 @@ var __iconData = {
 };
 __iconData.node;
 var Search = createLucideIcon(__iconData);
-// src/routes/videos.tsx?tsr-split=component
-var import_react = /* @__PURE__ */ __toESM(require_react());
+// src/components/material.tsx
+var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var import_jsx_runtime = require_jsx_runtime();
+function MaterialContent({ bvid, kind, revision }) {
+	const client = useDashboard((state) => state.client);
+	const [result, setResult] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	(0, import_react.useEffect)(() => {
+		let current = true;
+		setResult(null);
+		setError("");
+		if (client) client.material({
+			bvid,
+			kind
+		}).then((value) => {
+			if (current) setResult(value);
+		}).catch((error) => {
+			if (current) setError(error instanceof Error ? error.message : "素材加载失败");
+		});
+		return () => {
+			current = false;
+		};
+	}, [
+		client,
+		bvid,
+		kind,
+		revision
+	]);
+	if (error) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: error });
+	if (!result) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loading, {});
+	if (result.state !== "ready") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: result.message || {
+		unread: kind === "frames" ? "没有抽取过这个视频的画面。" : "尚未读取这类素材。",
+		failed: "上次读取失败。",
+		missing: "读取记录仍在，但素材缓存缺失或不完整。",
+		empty: kind === "subtitles" ? "这个视频没有可用字幕。" : "本次没有读到评论。"
+	}[result.state] });
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "material-content",
+		children: [
+			result.subtitles && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [result.total && result.subtitles.length < result.total ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "muted",
+				children: [
+					"读到了 ",
+					result.subtitles.length,
+					" 行，字幕共 ",
+					result.total,
+					" 行。"
+				]
+			}) : null, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "subtitle-lines",
+				children: result.subtitles.map((line, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("time", { children: line.time }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: line.text })] }, i))
+			})] }),
+			result.comments && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "material-comments",
+				children: result.comments.map((comment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "material-comment-meta",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: comment.author }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: comment.time }),
+						comment.likes > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [comment.likes, " 赞"] })
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: comment.text })] }, comment.id))
+			}),
+			result.images && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "material-images",
+				children: [result.times && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "muted",
+					children: result.times
+				}), result.images.map((image, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("figure", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					src: image.dataUrl,
+					alt: image.label
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("figcaption", { children: image.label })] }, i))]
+			}),
+			result.text && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "material-text",
+				children: result.text
+			})
+		]
+	});
+}
+// src/routes/videos.tsx?tsr-split=component
 function Videos() {
 	const { state, loading } = useDashboard((s) => ({
 		state: s.state,
@@ -186,7 +264,7 @@ function Videos() {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "小白龙读到的内容" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
 						value: material,
-						onValueChange: (value) => setMaterial(String(value)),
+						onValueChange: (value) => setMaterial(value),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsList, {
 							variant: "line",
 							className: "mb-3",
@@ -196,18 +274,20 @@ function Videos() {
 							}, key))
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 							value: material,
-							children: video.materials?.[material] ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", {
-								className: "material-text",
-								children: video.materials[material]
-							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: video.actions.includes(material) ? "这条历史记录未保存素材正文。" : "尚未读取这类素材。" })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MaterialContent, {
+								bvid: video.bvid,
+								kind: material,
+								revision: video.attempts?.[material]?.at ?? video.at
+							}, video.bvid + material)
 						})]
 					}),
 					video.materials?.debrief && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Collapsible, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollapsibleTrigger, {
 						className: "disclosure-trigger",
 						children: "查看简报"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollapsibleContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", {
-						className: "material-text",
-						children: video.materials.debrief
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollapsibleContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MaterialContent, {
+						bvid: video.bvid,
+						kind: "debrief",
+						revision: video.at
 					}) })] })
 				]
 			})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Panel, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Empty, { children: "选择一条观看记录查看详情。" }) })

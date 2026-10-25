@@ -57,3 +57,28 @@ test('评论初次读取只建立基线；后续消息去重；读取失败不�
   await listeners.comments();
   assert.equal(service.queue.list().length, 1);
 });
+
+test('评论读取期间暂停后不排入迟到消息，不推进游标', async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-comment-pause-'));
+  t.onTestFinished(() => fs.rmSync(dir, { recursive: true, force: true }));
+  let resolve!: (result: { code: number; out: string; err: string }) => void;
+  const service = new DragonService(
+    new Store(dir),
+    () =>
+      new Promise((done) => {
+        resolve = done;
+      }),
+  );
+  service.store.write('comment-cursor', { ids: [] });
+  const listeners = new Listeners(service);
+  const pending = listeners.comments();
+  listeners.suspended = true;
+  resolve({
+    code: 0,
+    out: JSON.stringify({ ok: true, items: [{ id: 8, mid: '1', text: '迟到消息' }] }),
+    err: '',
+  });
+  await assert.rejects(pending, /暂停/);
+  assert.equal(service.queue.list().length, 0);
+  assert.deepEqual(service.store.read('comment-cursor'), { ids: [] });
+});
