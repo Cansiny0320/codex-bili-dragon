@@ -1,4 +1,5 @@
 import {home as _dragonHome,runtime as _dragonRuntime,configFile as _dragonConfig} from '../../../../dist/runtime/vendor-paths.js';
+import {findFfmpeg} from '../../../../dist/runtime/vendor-paths.js';
 // ffmpeg 定位（2026-10-17 加，为开源打包做准备）
 //
 // 为什么要有这个文件：旧代码把 ffmpeg 路径写死在 bili-watch.mjs 里（作者本机剪映自带那份）。
@@ -52,6 +53,7 @@ function jianyingCopies() {
 export function ffmpegPath() {
   const cands = [
     process.env.FFMPEG,
+    findFfmpeg(),
     onPath(),
     path.join(ROOT, 'bin', EXE),
     dshPath('bili-whale', 'bin', EXE),

@@ -38,6 +38,56 @@ test('成功读取才缓存素材，旧记录保留且失败不会覆盖已读�
   assert.equal((await s.read({ action: 'comments', bvid: 'BV1234567890' })).isError, true);
   assert.deepEqual(s.store.read('evidence', {})['BV1234567890'], saved);
 });
+test('真实文本素材会补取结构化元数据，旧记录补全不改变探索时间', async (t) => {
+  const calls: string[][] = [];
+  const s = setup(t, async (args) => {
+    calls.push(args);
+    return {
+      code: 0,
+      out: args.includes('--metadata-only')
+        ? JSON.stringify({
+            bvid: args[1],
+            title: '手机上网刷视频的工作原理',
+            author: '科普创世纪',
+            cover: 'http://i0.hdslb.com/bfs/archive/test.jpg',
+            duration: 245,
+          })
+        : '标题: 手机上网刷视频的工作原理\nUP: 科普创世纪\n[00:00] 你现在刷到的这条短视频',
+      err: '',
+    };
+  });
+  await s.read({ action: 'subtitles', bvid: 'BV1p84y1m7U4' });
+  const saved = s.store.read('evidence', {})['BV1p84y1m7U4'];
+  assert.equal(saved.title, '手机上网刷视频的工作原理');
+  assert.equal(saved.cover, 'https://i0.hdslb.com/bfs/archive/test.jpg');
+  assert.deepEqual(saved.actions, ['subtitles']);
+  assert.match(saved.materials!.subtitles!, /00:00/);
+  await s.read({ action: 'subtitles', bvid: 'BV1p84y1m7U4' });
+  assert.equal(calls.filter((args) => args.includes('--metadata-only')).length, 1);
+  s.store.write('evidence', {
+    BV1p84y1m7U4: { actions: ['subtitles'], at: '2026-10-24T00:00:00Z' },
+  });
+  await s.refreshVideoMetadata();
+  const repaired = s.store.read('evidence', {})['BV1p84y1m7U4'];
+  assert.equal(repaired.title, saved.title);
+  assert.equal(repaired.at, '2026-10-24T00:00:00Z');
+  assert.deepEqual(repaired.actions, ['subtitles']);
+});
+test('元数据失败不丢失已读素材，封面仅接受 B 站图片域名', async (t) => {
+  const s = setup(t, async (args) => ({
+    code: args.includes('--metadata-only') ? 3 : 0,
+    out: args.includes('--metadata-only')
+      ? ''
+      : JSON.stringify({ title: '标题', cover: 'https://example.com/tracker.png' }),
+    err: '',
+  }));
+  const result = await s.read({ action: 'comments', bvid: 'BV1234567890' });
+  assert.notEqual(result.isError, true);
+  const saved = s.store.read('evidence', {})['BV1234567890'];
+  assert.equal(saved.title, '标题');
+  assert.equal(saved.cover, undefined);
+  assert.deepEqual(saved.actions, ['comments']);
+});
 test('分享目标必须匹配实际读取的视频，不能把 BV 和 aid 拼成另一条评论', async (t) => {
   const calls: string[][] = [];
   const s = setup(t, async (args) => {
@@ -141,4 +191,33 @@ test('凭据不进入状态，未读视频不能分享，工具不允许传任�
     }),
   );
   await assert.rejects(s.read({ action: 'shell', query: 'anything' }));
+});
+
+test('分享使用视频元数据核验，不依赖评论区可读，且仍阻止 BV 与 aid 错配', async (t) => {
+  const calls: string[][] = [];
+  const s = setup(t, async (args) => {
+    calls.push(args);
+    if (args[0] === 'video' && args.includes('--metadata-only'))
+      return { code: 0, out: JSON.stringify({ bvid: 'BV1234567890', aid: 99 }), err: '' };
+    if (args[0] === 'comment') return { code: 0, out: '已发送', err: '' };
+    return { code: 3, out: '', err: '评论不可读' };
+  });
+  s.saveConfig({
+    ...s.config(),
+    share: { ...s.config().share, enabled: true },
+    permissions: { comments: true, dm: false, live: false },
+  });
+  s.store.write('evidence', { BV1234567890: { actions: ['subtitles'] } });
+  const input = {
+    bvid: 'BV1234567890',
+    aid: '10',
+    text: '推荐',
+    score: 18,
+    reason: '内容很有意思值得分享',
+  };
+  await assert.rejects(s.share(input), /不匹配/);
+  assert.ok(calls.every((args) => args[0] !== 'comment'));
+  await s.share({ ...input, aid: '99' });
+  assert.equal(calls.filter((args) => args[0] === 'comment').length, 1);
+  assert.ok(calls.every((args) => args[0] !== 'comments'));
 });

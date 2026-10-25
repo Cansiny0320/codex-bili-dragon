@@ -40,6 +40,7 @@ export class Queue {
     return this.store.update('jobs', [], (items) => {
       const j = items.find((x) => x.id === id);
       if (!j) throw Error('找不到任务');
+      if (j.state === 'dismissed' || (j.state === 'needs-review' && state === 'done')) return j;
       Object.assign(j, { state, result, finishedAt: new Date().toISOString() });
       return j;
     });

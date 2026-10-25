@@ -1,4 +1,5 @@
 import type { Config } from './config.js';
+import type { LoginAccount } from './login.js';
 
 export type Channel = 'comments' | 'dm' | 'live';
 export type JobState = 'pending' | 'running' | 'done' | 'needs-review' | 'dismissed';
@@ -19,6 +20,7 @@ export interface InboxEvent {
   mid: string;
   text: string;
   receivedAt?: string;
+  inactive?: boolean;
   name?: string;
   uname?: string;
   bvid?: string;
@@ -91,6 +93,7 @@ export interface ListenerState {
 }
 export interface Database {
   config: Config;
+  account: LoginAccount | null;
   jobs: Job[];
   inbox: InboxEvent[];
   drafts: Draft[];

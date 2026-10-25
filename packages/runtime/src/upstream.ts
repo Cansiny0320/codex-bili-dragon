@@ -7,6 +7,7 @@ import { readConfig } from './config.js';
 import type { Config } from './config.js';
 import type { Store } from './store.js';
 import type { RunOptions, RunResult } from './types.js';
+import { ensureFfmpeg } from './ffmpeg.js';
 export function syncUpstream(store: Store, config: Config) {
   fs.mkdirSync(path.join(store.dir, '.bili-ai'), {
     recursive: true,
@@ -47,7 +48,7 @@ export function redact(value: unknown, dir: string) {
   } catch {}
   return s;
 }
-export function runUpstream(
+export async function runUpstream(
   store: Store,
   args: string[],
   { channel = '', timeout = 180000, signal }: RunOptions = {},
@@ -71,6 +72,7 @@ export function runUpstream(
   };
   const target = routes[args[0]];
   if (!target) throw Error('不支持的上游命令');
+  const ffmpeg = args[0] === 'watch-video' ? await ensureFfmpeg(store.dir) : undefined;
   return new Promise<RunResult>((resolve, reject) =>
     execFile(
       process.execPath,
@@ -87,6 +89,7 @@ export function runUpstream(
           BILI_DRAGON_DATA: store.dir,
           BILI_DRAGON_WRITE_CHANNEL: channel,
           DSH_NODE: process.execPath,
+          ...(ffmpeg ? { FFMPEG: ffmpeg } : {}),
         },
       },
       (error, stdout, stderr) => {

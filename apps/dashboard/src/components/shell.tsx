@@ -36,12 +36,15 @@ export function Shell({ children }: { children: ReactNode }) {
         <button aria-label="打开导航" onClick={() => setOpen(!open)}>
           <Menu />
         </button>
-        <strong>Codex Bili Dragon</strong>
+        <span className="mobile-brand">
+          <img src={dragonIcon} alt="" />
+          <strong>B 站小白龙</strong>
+        </span>
       </header>
       <aside className={'sidebar ' + (open ? 'is-open' : '')}>
         <div className="brand">
-          <strong>Codex Bili Dragon</strong>
-          <span>B 站小白龙</span>
+          <img src={dragonIcon} alt="" />
+          <strong>B 站小白龙</strong>
         </div>
         <nav aria-label="主导航">
           {items.map(([to, label, Icon]) => (
@@ -81,3 +84,4 @@ export function Shell({ children }: { children: ReactNode }) {
     </div>
   );
 }
+import dragonIcon from '../../../../assets/avatar.png?inline';

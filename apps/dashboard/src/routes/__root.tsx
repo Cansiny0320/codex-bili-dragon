@@ -11,19 +11,26 @@ export const Route = createRootRoute({
     ],
     links: [{ rel: 'stylesheet', href: styles }],
   }),
-  component: () => (
-    <html lang="zh-CN">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <DashboardProvider>
-          <Shell>
-            <Outlet />
-          </Shell>
-        </DashboardProvider>
-        <Scripts />
-      </body>
-    </html>
-  ),
+  component: () =>
+    typeof window !== 'undefined' && window.dragonApp ? (
+      <DashboardProvider>
+        <Shell>
+          <Outlet />
+        </Shell>
+      </DashboardProvider>
+    ) : (
+      <html lang="zh-CN">
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          <DashboardProvider>
+            <Shell>
+              <Outlet />
+            </Shell>
+          </DashboardProvider>
+          <Scripts />
+        </body>
+      </html>
+    ),
 });

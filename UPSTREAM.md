@@ -1,16 +1,17 @@
-# Upstream provenance
+# Third-party code notices
 
-- Source: https://github.com/Alterssss/dsh-bili-whale
 - Version: 0.4.6
 - Commit: 3e11454a5961300aa7094df0f08e630bd39999dd
 - License: MIT, copyright ALTERSSSS. Original license is retained.
-- No third-party Codex port was used.
 
 ## Local changes
 
-The original tools are vendored under vendor/upstream/tools. DSH host lifecycle, web UI, scheduler integration and session delivery were replaced with the Codex implementation in packages/runtime/src/ and apps/dashboard/.
+Third-party Bilibili utilities are retained under vendor/upstream/tools with their original MIT license. The application runtime and dashboard are maintained in packages/runtime/src/ and apps/dashboard/.
 
 - Tool state paths now resolve only inside BILI_DRAGON_DATA via dist/runtime/vendor-paths.js; no HOME, USERPROFILE or DSH_HOME reassignment.
+- Successful exits in video metadata, comments, DM and comment commands return normally so Windows network handles and stdout can close without a forced-exit crash.
+- video-content.mjs adds a metadata-only branch with BV, aid, title, cover, author and duration; dashboard backfill and share target validation no longer depend on comments or subtitles.
+- FFmpeg lookup prefers a validated plugin-managed binary; explicit FFMPEG and PATH installations remain supported.
 - The comments JSON response includes title, cover, author and duration from the already-fetched video metadata; it adds no new request.
 - guardedFetch enforces our live channel switch and endpoint allowlist for every write.
 - Live-listener handoff persists a pending JSON event before advancing its cursor and replays it until our durable queue acknowledges it. Poll sleep respects the requested deadline.
@@ -58,3 +59,11 @@ Modified upstream files:
 - tools/verify/session.mjs
 
 The new integration is also MIT licensed.
+
+## GPT 龙娘图标
+
+`assets/icon.png` 是 ZipZipPipe 的 GPT 龙娘现成立绘的头像裁切，来源、技术处理与作者署名/非商业使用条件见 [assets/NOTICE.md](assets/NOTICE.md)。图片不适用项目代码的 MIT 许可，也不将 DeepSeek 角色的 CC 许可套用于 GPT 角色。
+
+## Automatically downloaded FFmpeg
+
+FFmpeg is downloaded into the user data directory, not included in the plugin ZIP. Fixed assets, SHA-256 values and source-build links are recorded in `packages/runtime/src/ffmpeg-assets.json`. Windows/Linux builds come from BtbN LGPL shared builds; macOS builds come from dfloresc/ffmpeg-macos-builds LGPL builds. License, build information and libraries included in each distribution are preserved. FFmpeg is not covered by this project’s MIT license.

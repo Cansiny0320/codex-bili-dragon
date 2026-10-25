@@ -124,39 +124,57 @@ export function StatusBar() {
   if (!state) return null;
   const running = state.runtime.state === 'running',
     enabled = state.config.enabled;
+  const replying = state.jobs.find((job) => job.id === state.runtime.jobId)?.type === 'message';
+  const latest = state.jobs.filter((job) => job.type === 'browse').at(-1);
+  const diaryCount =
+    latest?.state === 'done' &&
+    latest.result &&
+    typeof latest.result === 'object' &&
+    'diaryCount' in latest.result
+      ? Number(latest.result.diaryCount)
+      : 0;
   return (
     <Panel className="status-bar">
       <span className={'status-light ' + (running || enabled ? 'online' : 'paused')} />
       <div className="status-copy">
-        <h1>{running ? '助手正在探索' : enabled ? '助手已开启' : '助手已暂停'}</h1>
-        <p>
+        <h1>
           {running
-            ? '当前任务完成后会更新记录'
+            ? replying
+              ? '小白龙正在回消息'
+              : '小白龙正在逛 B 站中'
             : enabled
-              ? '等待下一次活动机会'
-              : '可以手动开始一次探索'}
-        </p>
+              ? '小白龙等会儿再逛'
+              : '小白龙休息中'}
+        </h1>
+        {!running && diaryCount > 0 && <p>上次带回了 {diaryCount} 篇日记</p>}
       </div>
       <div className="status-actions">
-        <Button
-          variant="secondary"
-          disabled={busy}
-          onClick={() =>
-            void perform((c) =>
-              enabled || running ? c.pause() : c.config({ ...state.config, enabled: true }),
-            )
-          }
-        >
-          {enabled || running ? <Pause /> : <Play />}
-          {enabled || running ? '暂停运行' : '开启运行'}
-        </Button>
+        {!running && (
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() =>
+              void perform((c) =>
+                enabled ? c.pause() : c.config({ ...state.config, enabled: true }),
+              )
+            }
+          >
+            {enabled ? <Pause /> : <Play />}
+            {enabled ? '让小白龙休息' : '叫醒小白龙'}
+          </Button>
+        )}
         <Button
           variant={running ? 'destructive' : 'default'}
           disabled={busy}
-          onClick={() => void perform((c) => (running ? c.pause() : c.run()))}
+          onClick={() =>
+            void perform(
+              (c) => (running ? c.pause() : c.run()),
+              running ? '小白龙休息了' : '小白龙出门逛逛',
+            )
+          }
         >
           {running ? <Square /> : <Play />}
-          {running ? '停止探索' : '探索一次'}
+          {running ? '让小白龙休息' : '去逛一逛'}
         </Button>
       </div>
     </Panel>

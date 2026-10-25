@@ -126,6 +126,9 @@ select {
   border-right: 1px solid #e9effa;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 0 12px 22px 17px;
   white-space: nowrap;
   margin-bottom: 6px;
@@ -136,11 +139,54 @@ select {
   font-weight: 650;
   letter-spacing: -0.45px;
 }
-.brand span {
+.brand img {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.mobile-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.mobile-brand img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.qr-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0 22px;
+  min-height: 160px;
+}
+.qr-login p {
+  margin: 0;
+  text-align: center;
+}
+.login-qr {
   display: block;
-  font-size: 14px;
-  color: #5c6c8f;
-  margin-top: 5px;
+  max-width: 100%;
+  height: auto;
+}
+.account-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.manual-login {
+  border-top: 1px solid #e5edf8;
+  padding-top: 16px;
+  margin-top: 18px;
+}
+.manual-login[open] > summary {
+  margin-bottom: 20px;
 }
 .nav-item {
   height: 50px;
@@ -572,6 +618,20 @@ select {
   height: 52px;
   padding: 12px;
   border-radius: 50%;
+}
+.account-summary > img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.account-summary > svg,
+.account-summary > img {
+  flex-shrink: 0;
+}
+.account-summary > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .account-summary strong {
   font-size: 17px;

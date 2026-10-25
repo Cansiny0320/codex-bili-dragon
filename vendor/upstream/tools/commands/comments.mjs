@@ -19,6 +19,9 @@ import { apiGet } from '../lib/bili-api.mjs'
 import fs from 'node:fs'
 import path from 'node:path'
 
+// Allow pending network handles and stdout to close normally on Windows.
+async function main() {
+
 const argv = process.argv.slice(2)
 const bvid = argv.find((a) => !a.startsWith('--'))
 if (!bvid) { console.error('用法: node comments.mjs <BV> [--ps 20] [--pn 1] [--sort hot|time] [--json] [--max-chars 200]'); process.exit(2) }
@@ -104,7 +107,7 @@ if (AS_JSON) {
     count: list.length,
     items: list,
   }, null, 2))
-  process.exit(0)
+  return
 }
 
 console.log(`评论「${d.title}」`)
@@ -116,3 +119,6 @@ for (const [i, c] of list.entries()) {
   console.log(`    ${c.text}`)
   if (c.replies) console.log(`    └ 楼中楼 ${c.replies} 条`)
 }
+
+}
+await main()

@@ -25,6 +25,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [notice, setNotice] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
+    if (window.dragonApp) {
+      setClient(() => window.dragonApp!.client);
+      if (window.dragonApp.initialState) {
+        setState(window.dragonApp.initialState);
+        setLoading(false);
+      }
+      const receive = (event: Event) => {
+        setState((event as CustomEvent<AdminState>).detail);
+        setLoading(false);
+      };
+      window.addEventListener('dragon-state', receive);
+      return () => {
+        window.removeEventListener('dragon-state', receive);
+        if (timer.current) clearTimeout(timer.current);
+      };
+    }
     const fragment = window.location.hash.slice(1);
     if (fragment && /^[\w-]{40,}$/.test(fragment)) {
       sessionStorage.setItem('dragon-session', fragment);
@@ -118,11 +134,15 @@ export function useSettings() {
   const [config, setConfig] = useState<Config | null>(null);
   const [baseline, setBaseline] = useState('');
   useEffect(() => {
-    if (state && !config) {
+    if (
+      state &&
+      (!config || JSON.stringify(config) === baseline) &&
+      JSON.stringify(state.config) !== baseline
+    ) {
       setConfig(structuredClone(state.config));
       setBaseline(JSON.stringify(state.config));
     }
-  }, [state, config]);
+  }, [state, config, baseline]);
   const dirty = !!config && JSON.stringify(config) !== baseline;
   async function save() {
     if (config && (await perform((c) => c.config(config), '已保存')))

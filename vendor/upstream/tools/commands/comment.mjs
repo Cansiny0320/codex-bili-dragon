@@ -21,6 +21,9 @@ import { config } from '../lib/config.mjs'
 import { validateShare } from '../lib/share-policy.mjs'
 import { NODE_EXE } from '../lib/nodebin.mjs'   // 2026-10-21：别用 process.execPath（Electron 里它是主程序 ✗）
 
+// Allow pending network handles and stdout to close normally on Windows.
+async function main() {
+
 // ── 限额闸（B 档「限额自主」的代码强制部分，2026-10-14 主人选 B 档）────────────────
 // 语义：闸门**只管自主发言**（带 --auto，即"她自己决定说的"）；主人当场授权的发言不拦 ✓
 // 这一层存在的理由：主人明确要求"限频写进代码，不是写进你的自觉里"。
@@ -105,7 +108,7 @@ if (CHECK) {
   ]
   if (!root || !parent) {
     lines.push('\n这是【顶层评论】（不带 --root/--parent）→ 判重不生效，可以直接发 ✓')
-    console.log(lines.join('\n')); process.exit(0)
+    console.log(lines.join('\n')); return
   }
   if (!who?.mid) {
     lines.push('\n✗ 查不到被回复者的 uid → 发的时候会被 fail-closed 挡下来 ✗')
@@ -116,7 +119,7 @@ if (CHECK) {
   lines.push(`\n被回复者：${who.name || '(无名)'}（mid ${who.mid}）`)
   if (ownerMid && String(who.mid) === ownerMid) {
     lines.push('✓ 是主人 → 「同一个人只回一条」不适用 ✓ 能发 ✓')
-    console.log(lines.join('\n')); process.exit(0)
+    console.log(lines.join('\n')); return
   }
   const led = loadReplied()
   const hist = (led.byUid?.[who.mid] ?? []).filter((x) => Date.now() - new Date(x.at).getTime() < ONCE_DAYS * 86_400_000)
@@ -126,7 +129,7 @@ if (CHECK) {
     console.log(lines.join('\n')); process.exit(2)
   }
   lines.push('✓ 30 天内没回过 TA → 能发 ✓')
-  console.log(lines.join('\n')); process.exit(0)
+  console.log(lines.join('\n')); return
 }
 
 if (!oid || (!bvid && !refererArg) || !message) {
@@ -313,7 +316,7 @@ console.log(`  正文长度 ${message.length} 字符（上限 1000）；oid=${oi
 
 if (dry) {
   console.log('\n[dry] 预检通过，未发送。把 --dry 换成 --go 时仍会重新检查额度。')
-  process.exit(0)
+  return
 }
 
 // 判重（--once-per-person）已在入口处检查，这里直接发
@@ -377,7 +380,7 @@ if (out.code === 0) {
   console.log(bvid
     ? `  https://www.bilibili.com/video/${bvid}/#reply${rpid}`
     : `  ${referer.replace(/\/$/, '')}#reply${rpid}`)
-  process.exit(0) // P0-6：成功
+  return // P0-6：成功
 } else {
   const hints = {
     '-101': '账号未登录：cookie 失效',
@@ -396,3 +399,6 @@ if (out.code === 0) {
 // P0-6（Kimi 评审 #6）：走到这里 = 没发成功。给非 0 退出码，
 // 否则 agent 会把「被风控拒了」当成「发成功了」，绕过了「撞风控立刻停手」的红线 ✗
 process.exit(6)
+
+}
+await main()

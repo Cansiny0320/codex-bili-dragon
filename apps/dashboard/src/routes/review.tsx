@@ -29,7 +29,11 @@ function Review() {
     'needs-review': '待核查',
   };
   return (
-    <div className="split-page review-page">
+    <div
+      className={
+        (draft || ops.length || issues.length ? 'split-page' : 'page-stack') + ' review-page'
+      }
+    >
       <Panel className="list-panel">
         <h1>待我审核</h1>
         <div className="review-filters">
@@ -84,86 +88,88 @@ function Review() {
           <Empty>暂无待审核的消息。</Empty>
         )}
       </Panel>
-      <Panel className="review-detail">
-        {draft && event ? (
-          <>
-            <h2>{event.title || `UID ${event.mid}`}</h2>
-            <p className="muted">{formatTime(draft.createdAt)}</p>
+      {(draft || ops.length > 0 || issues.length > 0) && (
+        <Panel className="review-detail">
+          {draft && event ? (
+            <>
+              <h2>{event.title || `UID ${event.mid}`}</h2>
+              <p className="muted">{formatTime(draft.createdAt)}</p>
+              <section className="content-divider">
+                <h2>原消息</h2>
+                <strong>{event.name || event.uname || `UID ${event.mid}`}</strong>
+                <p className="message-text">{event.text}</p>
+              </section>
+              <section className="content-divider">
+                <h2>小白龙想这样回</h2>
+                <blockquote className="reply-text">{draft.text}</blockquote>
+                {draft.state === 'draft' ? (
+                  <>
+                    <div className="approval-actions">
+                      <Button
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => void perform((c) => c.reject({ id: draft.id }))}
+                      >
+                        拒绝
+                      </Button>
+                      <Button
+                        disabled={busy || !state.config.permissions[event.channel]}
+                        onClick={() => void perform((c) => c.approve({ id: draft.id }))}
+                      >
+                        批准发送
+                      </Button>
+                    </div>
+                    {!state.config.permissions[event.channel] && (
+                      <p className="muted">请先在操作权限中开启此发送通道。</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="muted">{labels[draft.state]}</p>
+                )}
+              </section>
+            </>
+          ) : (
+            <Empty>选一条消息，看看小白龙想怎么回。</Empty>
+          )}
+          {ops.length > 0 && (
             <section className="content-divider">
-              <h2>原消息</h2>
-              <strong>{event.name || event.uname || `UID ${event.mid}`}</strong>
-              <p className="message-text">{event.text}</p>
-            </section>
-            <section className="content-divider">
-              <h2>AI 拟发送的回复</h2>
-              <blockquote className="reply-text">{draft.text}</blockquote>
-              {draft.state === 'draft' ? (
-                <>
-                  <div className="approval-actions">
-                    <Button
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={() => void perform((c) => c.reject({ id: draft.id }))}
-                    >
-                      拒绝
-                    </Button>
-                    <Button
-                      disabled={busy || !state.config.permissions[event.channel]}
-                      onClick={() => void perform((c) => c.approve({ id: draft.id }))}
-                    >
-                      批准发送
-                    </Button>
+              <h2>发送结果</h2>
+              {ops.map((o) => (
+                <div className="issue-row" key={o.key}>
+                  {o.state === 'sending' ? <Clock /> : <HelpCircle />}
+                  <div>
+                    <strong>
+                      {o.state === 'sending' ? '发送中，等待结果' : '结果不明，需要核查'}
+                    </strong>
+                    <p>{o.error || o.key}</p>
                   </div>
-                  {!state.config.permissions[event.channel] && (
-                    <p className="muted">请先在操作权限中开启此发送通道。</p>
-                  )}
-                </>
-              ) : (
-                <p className="muted">{labels[draft.state]}</p>
-              )}
+                </div>
+              ))}
             </section>
-          </>
-        ) : (
-          <Empty>选择一条消息查看原文和拟发送的回复。</Empty>
-        )}
-        {ops.length > 0 && (
-          <section className="content-divider">
-            <h2>发送结果</h2>
-            {ops.map((o) => (
-              <div className="issue-row" key={o.key}>
-                {o.state === 'sending' ? <Clock /> : <HelpCircle />}
-                <div>
-                  <strong>
-                    {o.state === 'sending' ? '发送中，等待结果' : '结果不明，需要核查'}
-                  </strong>
-                  <p>{o.error || o.key}</p>
+          )}
+          {issues.length > 0 && (
+            <section className="content-divider">
+              <h2>待核查任务</h2>
+              {issues.map((j) => (
+                <div className="issue-row" key={j.id}>
+                  <AlertCircle />
+                  <div>
+                    <strong>{j.state === 'pending' ? '等待处理' : '任务中断'}</strong>
+                    <p>{typeof j.result === 'string' ? j.result : formatTime(j.createdAt)}</p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => void perform((c) => c.dismiss({ id: j.id }))}
+                  >
+                    关闭待办
+                  </Button>
                 </div>
-              </div>
-            ))}
-          </section>
-        )}
-        {issues.length > 0 && (
-          <section className="content-divider">
-            <h2>待核查任务</h2>
-            {issues.map((j) => (
-              <div className="issue-row" key={j.id}>
-                <AlertCircle />
-                <div>
-                  <strong>{j.state === 'pending' ? '等待处理' : '任务中断'}</strong>
-                  <p>{typeof j.result === 'string' ? j.result : formatTime(j.createdAt)}</p>
-                </div>
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => void perform((c) => c.dismiss({ id: j.id }))}
-                >
-                  关闭待办
-                </Button>
-              </div>
-            ))}
-          </section>
-        )}
-      </Panel>
+              ))}
+            </section>
+          )}
+        </Panel>
+      )}
     </div>
   );
 }

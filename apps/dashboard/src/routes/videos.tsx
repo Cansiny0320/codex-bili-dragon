@@ -65,7 +65,7 @@ function Videos() {
             </button>
           ))
         ) : (
-          <Empty>{query ? '没有匹配的观看记录。' : '还没有观看记录。'}</Empty>
+          <Empty>{query ? '没有匹配的观看记录。' : '小白龙还没出门逛过。'}</Empty>
         )}
       </Panel>
       <div className="page-stack detail-column">
@@ -80,7 +80,7 @@ function Videos() {
               <BiliLink bvid={video.bvid} />
             </Panel>
             <Panel className="materials-panel">
-              <h2>已读取的素材</h2>
+              <h2>小白龙读到的内容</h2>
               <div className="tabs">
                 {actions.map(([key, label]) => (
                   <button

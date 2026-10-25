@@ -7,11 +7,27 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 
+// Allow pending network handles and stdout to close normally on Windows.
+async function main() {
+
 const BVID = process.argv[2]
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 // [2026-10-14] 字幕必须带登录 cookie 且走 WBI 签名，否则拿到的 subtitle_url 缺 auth_key → CDN 403
 const cred = JSON.parse(fs.readFileSync(path.join((_dragonHome), '.bili-ai', 'credentials.json'), 'utf8'))
 const cookie = `SESSDATA=${cred.sessdata}; bili_jct=${cred.bili_jct}; buvid3=${cred.buvid3}`
+// Dashboard metadata must not depend on whether subtitles or comments are available.
+if (process.argv.includes('--metadata-only')) {
+  const view = await apiGet(`https://api.bilibili.com/x/web-interface/view?bvid=${BVID}`, {
+    'user-agent': UA, referer: `https://www.bilibili.com/video/${BVID}/`, cookie,
+  })
+  if (view?.code !== 0 || view.data?.bvid !== BVID) {
+    console.error('view failed', view?.code, view?.message)
+    process.exit(3)
+  }
+  const d = view.data
+  console.log(JSON.stringify({ bvid: d.bvid, aid: d.aid, title: d.title, cover: d.pic, author: d.owner?.name, duration: d.duration }))
+  return
+}
 const MIXIN_TAB = [46,47,18,2,53,8,23,32,15,50,10,31,58,3,45,35,27,43,5,49,33,9,42,19,29,28,14,39,12,38,41,13,37,48,7,16,24,55,40,61,26,17,0,1,60,51,30,4,22,25,54,21,56,59,6,63,57,62,11,36,20,34,44,52]
 const keyOf = (u) => u.slice(u.lastIndexOf('/') + 1, u.lastIndexOf('.'))
 const navForWbi = await apiGet('https://api.bilibili.com/x/web-interface/nav', { 'user-agent': UA, cookie })
@@ -91,3 +107,6 @@ if (!wantRepo) {
     }
   }
 }
+
+}
+await main()

@@ -1,14 +1,49 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChevronRight, NotebookText, MessageSquare, Mail, PlayCircle, Link2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { AdminState } from '@bili-dragon/runtime/api';
 import { useDashboard, videosFrom, formatTime } from '../lib/state';
 import { Panel, SectionTitle, Empty, Loading, StatusBar, VideoCard } from '../components/common';
 import { Button } from '../components/ui/button';
 import type { Channel } from '@bili-dragon/runtime/types';
 export const Route = createFileRoute('/')({ component: Home });
 function Home() {
-  const { state, loading, busy, perform } = useDashboard();
+  const { state, client, loading, busy, perform, refresh } = useDashboard();
   const [channel, setChannel] = useState<Channel>('comments');
+  const [account, setAccount] = useState<AdminState['account']>(null);
+  const [connection, setConnection] = useState('检查中…');
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+  const hasCredentials = state?.hasCredentials;
+  useEffect(() => {
+    if (!client || !hasCredentials) {
+      setAccount(null);
+      setConnection('未连接');
+      return;
+    }
+    let active = true;
+    setConnection('检查中…');
+    void client
+      .checkLogin()
+      .then((result) => {
+        if (!active) return;
+        setAccount(result.account ?? null);
+        setConnection(
+          result.status === 'connected'
+            ? '已连接'
+            : result.status === 'expired'
+              ? '登录已失效'
+              : '未连接',
+        );
+        void refreshRef.current();
+      })
+      .catch(() => {
+        if (active) setConnection('连接检查失败');
+      });
+    return () => {
+      active = false;
+    };
+  }, [client, hasCredentials]);
   if (!state) return loading ? <Loading /> : null;
   const videos = videosFrom(state).slice(0, 5),
     last = state.diaries.at(-1);
@@ -21,7 +56,7 @@ function Home() {
       <div className="page-stack">
         <StatusBar />
         <Panel>
-          <SectionTitle to="/videos">最近探索的视频</SectionTitle>
+          <SectionTitle to="/videos">最近逛到的视频</SectionTitle>
           {videos.length ? (
             <div className="video-grid">
               {videos.map((v) => (
@@ -29,7 +64,7 @@ function Home() {
               ))}
             </div>
           ) : (
-            <Empty>还没有观看记录。开始探索后会显示在这里。</Empty>
+            <Empty>小白龙还没出门逛过。</Empty>
           )}
         </Panel>
         <Panel>
@@ -75,7 +110,7 @@ function Home() {
                       disabled={busy || !e || !state.config.permissions[e.channel]}
                       onClick={() => void perform((c) => c.approve({ id: d.id }))}
                     >
-                      批准
+                      批准发送
                     </Button>
                   </div>
                 </article>
@@ -104,7 +139,7 @@ function Home() {
               ))}
             </div>
           ) : (
-            <Empty>探索结束后，两份日记会保存在这里。</Empty>
+            <Empty>小白龙还没写过日记。</Empty>
           )}
         </Panel>
       </div>
@@ -172,7 +207,13 @@ function Home() {
             <div key={key} className="summary-row">
               <Icon size={23} />
               <span>{label}</span>
-              <span>{state.config.permissions[key] ? '允许' : '关闭'}</span>
+              <span>
+                {key === 'dm' && state.config.accountMode === 'single'
+                  ? '单号不可用'
+                  : state.config.permissions[key]
+                    ? '允许'
+                    : '关闭'}
+              </span>
             </div>
           ))}
         </Panel>
@@ -182,14 +223,18 @@ function Home() {
             <ChevronRight />
           </Link>
           <Link to="/account" className="account-summary">
-            <Link2 />
+            {account?.avatar ? (
+              <img src={account.avatar} alt="" referrerPolicy="no-referrer" />
+            ) : (
+              <Link2 />
+            )}
             <div>
-              <strong>B 站账号</strong>
+              <strong>{account?.name || 'B 站账号'}</strong>
               <p>
-                <i className={'dot ' + (state.hasCredentials ? 'green' : '')} />
-                {state.hasCredentials ? '已配置凭据' : '未连接'}
+                <i className={'dot ' + (connection === '已连接' ? 'green' : '')} />
+                {connection}
               </p>
-              {state.config.owner.mid && <small>主人 UID {state.config.owner.mid}</small>}
+              {account && <small>UID {account.uid}</small>}
             </div>
           </Link>
         </Panel>

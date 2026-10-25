@@ -13,7 +13,7 @@ function Schedule() {
   return (
     <>
       <h1 className="page-title">活动时间</h1>
-      <div className="settings-grid">
+      <div className="page-stack schedule-page">
         <div className="page-stack">
           <Panel>
             <Field label="时区">
@@ -158,9 +158,9 @@ function Schedule() {
             </div>
           </Panel>
           <Panel>
-            <h2>探索行为设置</h2>
+            <h2>逛 B 站的习惯</h2>
             <div className="form-columns">
-              <Field label="随机跳过比例">
+              <Field label="这次歇一歇的概率">
                 <div className="with-unit">
                   <Input
                     type="number"
@@ -177,7 +177,7 @@ function Schedule() {
                   <span>%</span>
                 </div>
               </Field>
-              <Field label="最小间隔">
+              <Field label="两次闲逛至少间隔">
                 <div className="with-unit">
                   <Input
                     type="number"
@@ -191,7 +191,7 @@ function Schedule() {
                   <span>分钟</span>
                 </div>
               </Field>
-              <Field label="单次最多探索视频数">
+              <Field label="每次最多看几个视频">
                 <div className="with-unit">
                   <Input
                     type="number"
@@ -208,13 +208,13 @@ function Schedule() {
             </div>
           </Panel>
           <Panel>
-            <h2>互动与监听设置</h2>
+            <h2>留意新消息</h2>
             <div className="form-columns">
               {(
                 [
                   ['comment', '评论'],
                   ['dm', '私信'],
-                  ['live', '直播监听'],
+                  ['live', '直播弹幕'],
                 ] as const
               ).map(([key, label]) => (
                 <Toggle
@@ -225,103 +225,89 @@ function Schedule() {
                 />
               ))}
             </div>
-            <div className="form-columns">
-              <Field label="评论轮询间隔（秒）">
-                <Input
-                  type="number"
-                  min={60}
-                  max={3600}
-                  value={l.commentIntervalSec}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      listen: { ...l, commentIntervalSec: Number(e.target.value) },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="私信轮询间隔（秒）">
-                <Input
-                  type="number"
-                  min={60}
-                  max={3600}
-                  value={l.dmIntervalSec}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      listen: { ...l, dmIntervalSec: Number(e.target.value) },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="直播间号">
-                <Input
-                  inputMode="numeric"
-                  value={l.liveRoom}
-                  onChange={(e) =>
-                    setConfig({ ...config, listen: { ...l, liveRoom: e.target.value } })
-                  }
-                />
-              </Field>
-            </div>
-            <div className="listener-options">
-              <Field label="直播监听范围">
-                <select
-                  value={l.liveScope}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      listen: { ...l, liveScope: e.target.value as 'owner' | 'mention' },
-                    })
-                  }
-                >
-                  <option value="owner">仅主人</option>
-                  <option value="mention">仅提及助手</option>
-                </select>
-              </Field>
-              <Toggle
-                label="全天监听"
-                checked={l.allDay}
-                onChange={(allDay) => setConfig({ ...config, listen: { ...l, allDay } })}
-              />
-              <Toggle
-                label="每人只回一次"
-                checked={l.oncePerPerson}
-                onChange={(oncePerPerson) =>
-                  setConfig({ ...config, listen: { ...l, oncePerPerson } })
-                }
-              />
-            </div>
+            {(l.comment || l.dm || l.live) && (
+              <details className="listener-details">
+                <summary>消息设置</summary>
+                <div className="form-columns">
+                  {l.comment && (
+                    <Field label="检查评论的间隔（秒）">
+                      <Input
+                        type="number"
+                        min={60}
+                        max={3600}
+                        value={l.commentIntervalSec}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            listen: { ...l, commentIntervalSec: Number(e.target.value) },
+                          })
+                        }
+                      />
+                    </Field>
+                  )}
+                  {l.dm && (
+                    <Field label="检查私信的间隔（秒）">
+                      <Input
+                        type="number"
+                        min={60}
+                        max={3600}
+                        value={l.dmIntervalSec}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            listen: { ...l, dmIntervalSec: Number(e.target.value) },
+                          })
+                        }
+                      />
+                    </Field>
+                  )}
+                  {l.live && (
+                    <Field label="直播间号">
+                      <Input
+                        inputMode="numeric"
+                        value={l.liveRoom}
+                        onChange={(e) =>
+                          setConfig({ ...config, listen: { ...l, liveRoom: e.target.value } })
+                        }
+                      />
+                    </Field>
+                  )}
+                </div>
+                <div className="listener-options">
+                  {l.live && (
+                    <Field label="留意哪些弹幕">
+                      <select
+                        value={l.liveScope}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            listen: { ...l, liveScope: e.target.value as 'owner' | 'mention' },
+                          })
+                        }
+                      >
+                        <option value="owner">仅主人</option>
+                        <option value="mention">只看提到小白龙的消息</option>
+                      </select>
+                    </Field>
+                  )}
+                  <Toggle
+                    label="活动时间外也留意消息"
+                    checked={l.allDay}
+                    onChange={(allDay) => setConfig({ ...config, listen: { ...l, allDay } })}
+                  />
+                  <Toggle
+                    label="每人只回一次"
+                    checked={l.oncePerPerson}
+                    onChange={(oncePerPerson) =>
+                      setConfig({ ...config, listen: { ...l, oncePerPerson } })
+                    }
+                  />
+                </div>
+              </details>
+            )}
           </Panel>
         </div>
-        <aside className="page-stack">
-          <Panel>
-            <h2>当前设置概览</h2>
-            <dl className="settings-overview">
-              <dt>时区</dt>
-              <dd>{config.timezone}</dd>
-              <dt>活动时段</dt>
-              <dd>
-                {n.windows.map((w, i) => (
-                  <p key={i}>
-                    {w.start} – {w.end}（{w.wakes} 次）
-                  </p>
-                ))}
-              </dd>
-              <dt>随机跳过</dt>
-              <dd>{Math.round(n.skipChance * 100)}%</dd>
-              <dt>最小间隔</dt>
-              <dd>{n.minGapMin} 分钟</dd>
-              <dt>单次探索</dt>
-              <dd>{n.maxVideos} 个视频</dd>
-              <dt>全天监听</dt>
-              <dd>{l.allDay ? '开启' : '关闭'}</dd>
-            </dl>
-          </Panel>
-          <Panel>
-            <SaveBar {...settings} />
-          </Panel>
-        </aside>
+        <SaveBar {...settings} />
       </div>
     </>
   );

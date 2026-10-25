@@ -4,7 +4,7 @@
 
 ## 目标
 
-以 Alterssss/dsh-bili-whale v0.4.6，commit 3e11454a5961300aa7094df0f08e630bd39999dd 为唯一功能来源，制作 Codex 本地插件。产品名 Codex Bili Dragon，中文 B 站小白龙；源代码位置 D:/code/codex-bili-dragon。命名取自中文社区 GPT 白龙/龙娘二创意象；无官方关联，不分发现成角色图片。
+使用固定版本的 B 站工具集合（v0.4.6，commit 3e11454a5961300aa7094df0f08e630bd39999dd）制作 Codex 本地插件。产品名 Codex Bili Dragon，中文 B 站小白龙；源代码位置 D:/code/codex-bili-dragon。命名取自中文社区 GPT 白龙/龙娘二创意象；无官方关联，不分发现成角色图片。
 
 ## 架构与行为
 

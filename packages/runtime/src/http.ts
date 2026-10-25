@@ -5,17 +5,17 @@ import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import type { AddressInfo } from 'node:net';
 import { RPCHandler, BodyLimitPlugin } from '@orpc/server/node';
-import { root } from './paths.js';
+import { root, version } from './paths.js';
 import { redact } from './upstream.js';
 import { errorMessage } from './types.js';
-import type { DragonService } from './service.js';
+import { catalog, type DragonService } from './service.js';
 import { createActions, createApi, type DaemonControl } from './api.js';
 
 type Render = (request: Request) => Promise<Response>;
 export async function createHttp(
   service: DragonService,
   daemon: DaemonControl,
-  { port = 18841, render }: { port?: number; render?: Render } = {},
+  { port = 18841, render, stop }: { port?: number; render?: Render; stop?: () => void } = {},
 ) {
   const token = crypto.randomBytes(32).toString('base64url');
   const actions = createActions(service, daemon);
@@ -56,6 +56,10 @@ export async function createHttp(
           send(res, 200, actions.state());
           return;
         }
+        if (req.method === 'GET' && url.pathname === '/api/runtime') {
+          send(res, 200, { pid: process.pid, version, protocol: 1 });
+          return;
+        }
         if (req.method !== 'POST') {
           send(res, 405, { error: '方法不支持' });
           return;
@@ -91,12 +95,45 @@ export async function createHttp(
             : '';
         let result: unknown;
         switch (url.pathname) {
+          case '/api/tool': {
+            const input = data as { name?: unknown; arguments?: unknown };
+            const tool = catalog(service).find((item) => item.name === input?.name);
+            if (!tool) throw Error('未知工具');
+            result = await tool.call(input.arguments ?? {});
+            break;
+          }
+          case '/api/stop':
+            if (!stop) throw Error('请通过启动终端停止此前台实例');
+            await actions.pause();
+            result = { stopping: true };
+            stop();
+            break;
           case '/api/config':
             result = await actions.config(data);
             break;
           case '/api/credentials':
-            result = actions.credentials(data);
+            result = await actions.credentials(data);
             break;
+          case '/api/login-start':
+            result = await actions.loginStart();
+            break;
+          case '/api/login-poll':
+          case '/api/login-cancel': {
+            const handle =
+              typeof data === 'object' &&
+              data !== null &&
+              'handle' in data &&
+              typeof data.handle === 'string'
+                ? data.handle
+                : '';
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle))
+              throw Error('无效登录会话');
+            result =
+              url.pathname === '/api/login-poll'
+                ? await actions.loginPoll(handle)
+                : actions.loginCancel(handle);
+            break;
+          }
           case '/api/check-login':
             result = await actions.checkLogin();
             break;
@@ -185,9 +222,11 @@ export async function createHttp(
     token,
     url: origin + '/#' + token,
     server,
-    close: () =>
-      new Promise<void>((resolve, reject) =>
+    close: () => {
+      service.login.dispose();
+      return new Promise<void>((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),
-      ),
+      );
+    },
   };
 }

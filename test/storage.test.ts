@@ -17,10 +17,11 @@ test('corrupt state fails closed and atomic updates retain data', (t) => {
   assert.throws(() => s.read('counter', {}), /损坏/);
   assert.throws(() => s.read('../escape'), /路径/);
 });
-test('defaults prohibit external writes; malformed timezone and unknown config rejected', () => {
+test('默认只启用私信权限，保留明确关闭；拒绝无效时区和未知配置', () => {
   const c = validateConfig({});
   assert.equal(c.enabled, false);
-  assert.ok(Object.values(c.permissions).every((v) => v === false));
+  assert.deepEqual(c.permissions, { comments: false, dm: true, live: false });
+  assert.equal(validateConfig({ permissions: { dm: false } }).permissions.dm, false);
   assert.throws(() => validateConfig({ timezone: 'made/up' }));
   assert.throws(() =>
     validateConfig({

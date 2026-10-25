@@ -7,6 +7,7 @@ import { chromium, type Page } from 'playwright';
 import { Store } from '../packages/runtime/src/store.js';
 import { DragonService } from '../packages/runtime/src/service.js';
 import { createHttp } from '../packages/runtime/src/http.js';
+import { loginFixture } from './login-fixture.js';
 
 test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用替身', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-ui-'));
@@ -14,10 +15,15 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
   fs.mkdirSync(output, { recursive: true });
   const store = new Store(dir);
   const calls: string[][] = [];
-  const service = new DragonService(store, async (args) => {
-    calls.push(args);
-    return { code: 0, out: args[0] === 'session' ? '测试会话有效' : '测试发送成功', err: '' };
-  });
+  const login = loginFixture();
+  const service = new DragonService(
+    store,
+    async (args) => {
+      calls.push(args);
+      return { code: 0, out: args[0] === 'session' ? '测试会话有效' : '测试发送成功', err: '' };
+    },
+    { fetch: login.fetch },
+  );
   service.saveConfig({
     ...service.config(),
     owner: { mid: '10001', name: '你' },
@@ -134,7 +140,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     page.setDefaultTimeout(15000);
     await page.goto(http.url);
     await page
-      .getByRole('heading', { name: '助手已暂停' })
+      .getByRole('heading', { name: '小白龙休息中' })
       .waitFor()
       .catch(async (e: unknown) => {
         console.log(await page.locator('body').innerText());
@@ -142,6 +148,31 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
         throw e;
       });
     assert.equal(new URL(page.url()).hash, '');
+    for (const [type, heading] of [
+      ['browse', '小白龙正在逛 B 站中'],
+      ['message', '小白龙正在回消息'],
+    ]) {
+      store.write('jobs', [
+        {
+          id: 'status-test',
+          key: 'status-test',
+          type,
+          payload: {},
+          state: 'running',
+          createdAt: now,
+        },
+      ]);
+      store.write('runtime', { state: 'running', jobId: 'status-test' });
+      await page.reload();
+      await page.getByRole('heading', { name: heading, exact: true }).waitFor();
+      assert.equal(
+        await page.getByRole('button', { name: '让小白龙休息', exact: true }).count(),
+        1,
+      );
+      assert.equal(await page.getByRole('button', { name: '去逛一逛', exact: true }).count(), 0);
+    }
+    store.write('jobs', []);
+    store.write('runtime', { state: 'idle' });
     const routes = [
       '/',
       '/videos',
@@ -171,7 +202,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
       await checkLayout(page, (route.slice(1) || 'home') + '-desktop');
     }
     await page.goto(http.origin + '/personality');
-    await page.getByLabel('助手名字', { exact: true }).fill('测试小白龙');
+    await page.getByLabel('小白龙的名字', { exact: true }).fill('测试小白龙');
     await page.getByRole('button', { name: '添加关键词' }).first().click();
     await page.getByLabel('喜欢的内容关键词新增关键词').fill('天文');
     await page.getByRole('button', { name: '添加', exact: true }).click();
@@ -180,7 +211,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     assert.equal(service.config().persona.name, '测试小白龙');
     assert.ok(service.config().preferences.like.includes('天文'));
     await page.reload();
-    assert.equal(await page.getByLabel('助手名字', { exact: true }).inputValue(), '测试小白龙');
+    assert.equal(await page.getByLabel('小白龙的名字', { exact: true }).inputValue(), '测试小白龙');
     await page.goto(http.origin + '/review');
     assert.equal(await page.getByRole('button', { name: '批准发送' }).isDisabled(), true);
     await page.getByRole('button', { name: '拒绝', exact: true }).click();
@@ -196,15 +227,41 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     await page.waitForFunction(() => document.querySelectorAll('.review-list-item').length === 1);
     assert.equal(calls.filter((args) => args[0] === 'comment').length, 1);
     await page.goto(http.origin + '/account');
+    await page.getByAltText('B 站登录二维码').waitFor();
+    assert.equal(await page.getByLabel('SESSDATA', { exact: true }).isVisible(), false);
+    login.status(86090);
+    await page.getByText('扫码成功，请在手机上确认', { exact: true }).waitFor();
+    login.status(0);
+    await page.getByRole('heading', { name: '扫码测试账号', exact: true }).waitFor();
+    await page.getByText('UID 12345', { exact: true }).waitFor();
+    assert.equal(service.config().owner.mid, '10001');
+    await page.goto(http.origin);
+    await page.locator('.account-summary').getByText('扫码测试账号', { exact: true }).waitFor();
+    await page.locator('.account-summary').getByText('UID 12345', { exact: true }).waitFor();
+    assert.equal(
+      await page.locator('.account-summary img').getAttribute('src'),
+      'https://test.hdslb.com/avatar.svg',
+    );
+    assert.ok(!(await page.locator('.account-summary').innerText()).includes('10001'));
+    await page.reload();
+    await page.locator('.account-summary').getByText('扫码测试账号', { exact: true }).waitFor();
+    await page.goto(http.origin + '/account');
+    await page.getByRole('heading', { name: '扫码测试账号', exact: true }).waitFor();
+    login.status(86038);
+    await page.getByRole('button', { name: '重新扫码登录', exact: true }).click();
+    await page.getByText('二维码已失效', { exact: true }).waitFor();
+    login.status(86101);
+    await page.getByRole('button', { name: '刷新二维码', exact: true }).click();
+    await page.getByAltText('B 站登录二维码').waitFor();
+    await page.getByText('高级选项', { exact: true }).click();
     await page.getByLabel('SESSDATA', { exact: true }).fill('ui-fixture-secret');
     await page.getByLabel('bili_jct', { exact: true }).fill('a'.repeat(32));
     await page.getByLabel('buvid3', { exact: true }).fill('ui-fixture-buvid');
     await page.getByRole('button', { name: '保存凭据' }).click();
-    await page.getByRole('heading', { name: '已配置', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '扫码测试账号', exact: true }).waitFor();
     assert.equal(await page.getByLabel('SESSDATA', { exact: true }).inputValue(), '');
-    await page.getByRole('button', { name: '检查会话' }).click();
-    await page.getByText('本次检查结果').click();
-    await page.getByText('测试会话有效', { exact: false }).waitFor();
+    await page.getByRole('button', { name: '检查连接' }).click();
+    await page.getByRole('heading', { name: '扫码测试账号', exact: true }).waitFor();
     const stateBody = await (
       await fetch(http.origin + '/api/state', {
         headers: { authorization: 'Bearer ' + http.token },
@@ -220,7 +277,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     await page.getByRole('button', { name: '上个月' }).click();
     await page.getByText('这个月还没有日记。').waitFor();
     await page.goto(http.origin);
-    await page.getByRole('button', { name: '探索一次' }).click();
+    await page.getByRole('button', { name: '去逛一逛' }).click();
     await page.waitForFunction(() => !document.querySelector('button:disabled'));
     assert.equal(service.queue.list().at(-1)?.state, 'done');
     await page.setViewportSize({ width: 390, height: 844 });
@@ -230,7 +287,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     }
     await page.getByRole('button', { name: '打开导航' }).click();
     await page.getByRole('navigation').getByRole('link', { name: '首页', exact: true }).click();
-    await page.getByRole('heading', { name: '助手已暂停' }).waitFor();
+    await page.getByRole('heading', { name: '小白龙休息中' }).waitFor();
     assert.equal(await page.locator('.sidebar.is-open').count(), 0);
     await page.goto(http.origin + '/permissions');
     const enabledSwitch = page.getByRole('switch', { name: '发送评论', exact: true });
@@ -243,7 +300,7 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     );
     assert.notEqual(
       await page
-        .getByRole('button', { name: '探索一次' })
+        .getByRole('button', { name: '去逛一逛' })
         .evaluate((el) => getComputedStyle(el).backgroundColor),
       'rgba(0, 0, 0, 0)',
     );
@@ -258,8 +315,8 @@ test('八页桌面/窄屏布局和真实 oRPC 交互，所有外部操作使用�
     store.write('drafts', []);
     store.write('evidence', {});
     for (const [route, message] of [
-      ['/', '还没有观看记录。开始探索后会显示在这里。'],
-      ['/videos', '还没有观看记录。'],
+      ['/', '小白龙还没出门逛过。'],
+      ['/videos', '小白龙还没出门逛过。'],
       ['/diary', '这个月还没有日记。'],
       ['/review', '暂无待审核的消息。'],
     ]) {

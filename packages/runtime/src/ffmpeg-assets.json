@@ -1,0 +1,56 @@
+{
+  "win32-x64": {
+    "version": "9.0.2-17-g2a571b6068",
+    "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-win64-lgpl-shared-9.0.zip",
+    "sha256": "7157177b8a6cb2174c1650ba8c71b363f2c78cba5330f88c4c02cf5b2b880646",
+    "root": "ffmpeg-n9.0.2-17-g2a571b6068-win64-lgpl-shared-9.0",
+    "format": "zip",
+    "source": "https://github.com/BtbN/FFmpeg-Builds/tree/autobuild-2026-09-30-13-08",
+    "minimum": "Windows 10 22H2"
+  },
+  "win32-arm64": {
+    "version": "9.0.2-17-g2a571b6068",
+    "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-winarm64-lgpl-shared-9.0.zip",
+    "sha256": "f3133abf5c2b6ae45bd428d480cf830a9fbda3a3866dc249110e85f99f13b8ce",
+    "root": "ffmpeg-n9.0.2-17-g2a571b6068-winarm64-lgpl-shared-9.0",
+    "format": "zip",
+    "source": "https://github.com/BtbN/FFmpeg-Builds/tree/autobuild-2026-09-30-13-08",
+    "minimum": "Windows 10 22H2"
+  },
+  "linux-x64": {
+    "version": "9.0.2-17-g2a571b6068",
+    "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-linux64-lgpl-shared-9.0.tar.xz",
+    "sha256": "7a1ba2af36e5beeb98151e766a903b1d115f2206a86571f17f873cd7292c424f",
+    "root": "ffmpeg-n9.0.2-17-g2a571b6068-linux64-lgpl-shared-9.0",
+    "format": "tar",
+    "source": "https://github.com/BtbN/FFmpeg-Builds/tree/autobuild-2026-09-30-13-08",
+    "minimum": "glibc 2.28 / Linux 4.18"
+  },
+  "linux-arm64": {
+    "version": "9.0.2-17-g2a571b6068",
+    "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n9.0.2-17-g2a571b6068-linuxarm64-lgpl-shared-9.0.tar.xz",
+    "sha256": "1aa02c59afe06dea2602b40517a5cb75c0ff6d524f217b5aea1f0ca07977cd51",
+    "root": "ffmpeg-n9.0.2-17-g2a571b6068-linuxarm64-lgpl-shared-9.0",
+    "format": "tar",
+    "source": "https://github.com/BtbN/FFmpeg-Builds/tree/autobuild-2026-09-30-13-08",
+    "minimum": "glibc 2.28 / Linux 4.18"
+  },
+  "darwin-x64": {
+    "version": "9.0.1-1",
+    "url": "https://github.com/dfloresc/ffmpeg-macos-builds/releases/download/v9.0.1-1/ffmpeg-9.0.1-1-lgpl-macos-x86_64.tar.xz",
+    "sha256": "d63ad731cbf1eb71c2055130fedfbd7e49edd60a9815ab763e72ba802c1ac666",
+    "root": "ffmpeg-9.0.1-1-lgpl-macos-x86_64",
+    "format": "tar",
+    "source": "https://github.com/dfloresc/ffmpeg-macos-builds/releases/tag/v9.0.1-1",
+    "minimum": "macOS 12"
+  },
+  "darwin-arm64": {
+    "version": "9.0.1-1",
+    "url": "https://github.com/dfloresc/ffmpeg-macos-builds/releases/download/v9.0.1-1/ffmpeg-9.0.1-1-lgpl-macos-arm64.tar.xz",
+    "sha256": "d0ea5ea43a5adfa5d01d4137c9e5a61728b800a812f12917a26fd7af0c14c03a",
+    "root": "ffmpeg-9.0.1-1-lgpl-macos-arm64",
+    "format": "tar",
+    "source": "https://github.com/dfloresc/ffmpeg-macos-builds/releases/tag/v9.0.1-1",
+    "minimum": "macOS 12"
+  }
+}

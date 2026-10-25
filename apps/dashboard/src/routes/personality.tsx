@@ -78,7 +78,7 @@ function Personality() {
           <h2>基础设置</h2>
           {(
             [
-              ['name', '助手名字'],
+              ['name', '小白龙的名字'],
               ['selfClaim', '自称'],
               ['ownerTitle', '对你的称呼'],
               ['diaryTitle', '写给你的日记标题'],

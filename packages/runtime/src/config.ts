@@ -7,6 +7,8 @@ const text = z.string().max(2000),
 export const configSchema = z
   .object({
     enabled: z.boolean().default(false),
+    // Older configurations are resolved after the login identity is verified.
+    accountMode: z.enum(['single', 'dual']).optional(),
     timezone: z
       .string()
       .refine((v) => DateTime.now().setZone(v).isValid)
@@ -40,7 +42,7 @@ export const configSchema = z
     permissions: z
       .object({
         comments: z.boolean().default(false),
-        dm: z.boolean().default(false),
+        dm: z.boolean().default(true),
         live: z.boolean().default(false),
       })
       .strict()

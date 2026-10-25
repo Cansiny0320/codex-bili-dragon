@@ -6,6 +6,7 @@ import type { Daemon } from './daemon.js';
 import { configSchema } from './config.js';
 import { errorMessage } from './types.js';
 import { redact } from './upstream.js';
+import { credentialsSchema } from './login.js';
 
 export type DaemonControl = Pick<Daemon, 'pause' | 'tick' | 'error'>;
 export function createActions(service: DragonService, daemon: DaemonControl) {
@@ -17,14 +18,17 @@ export function createActions(service: DragonService, daemon: DaemonControl) {
       listeners: service.store.read('listener-status', {}),
       schedule: service.store.read('schedule', {}),
     }),
-    config: async (input: unknown) => {
-      const old = service.config();
-      const next = service.saveConfig(input);
-      if (old.enabled && !next.enabled) await daemon.pause();
-      return next;
+    config: (input: unknown) => service.configure(input, () => daemon.pause()),
+    credentials: (input: unknown) => service.login.manual(input, () => daemon.pause()),
+    checkLogin: () => service.checkAccount(() => daemon.pause()),
+    loginStart: () => service.login.start(),
+    loginPoll: async (handle: string) => {
+      const result = await service.login.poll(handle, () => daemon.pause());
+      if (result.status === 'success' && result.account)
+        await service.recordAccount(result.account, () => daemon.pause());
+      return result;
     },
-    credentials: (input: unknown) => service.setCredentials(input),
-    checkLogin: () => service.read({ action: 'session' }),
+    loginCancel: (handle: string) => service.login.cancel(handle),
     run: () => {
       if (service.queue.list().some((j) => ['pending', 'running'].includes(j.state)))
         throw Error('已有待处理任务，请先完成或暂停后核查');
@@ -59,13 +63,15 @@ export function createApi(service: DragonService, daemon: DaemonControl) {
     }
   });
   const id = z.object({ id: z.string().min(1) }).strict();
+  const loginHandle = z.object({ handle: z.string().uuid() }).strict();
   return {
     state: base.handler(() => actions.state()),
     config: base.input(configSchema).handler(({ input }) => actions.config(input)),
-    credentials: base
-      .input(z.object({ sessdata: z.string(), bili_jct: z.string(), buvid3: z.string() }).strict())
-      .handler(({ input }) => actions.credentials(input)),
+    credentials: base.input(credentialsSchema).handler(({ input }) => actions.credentials(input)),
     checkLogin: base.handler(() => actions.checkLogin()),
+    loginStart: base.handler(() => actions.loginStart()),
+    loginPoll: base.input(loginHandle).handler(({ input }) => actions.loginPoll(input.handle)),
+    loginCancel: base.input(loginHandle).handler(({ input }) => actions.loginCancel(input.handle)),
     run: base.handler(() => actions.run()),
     pause: base.handler(() => actions.pause()),
     approve: base.input(id).handler(({ input }) => actions.approve(input.id)),

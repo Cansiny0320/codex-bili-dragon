@@ -5,13 +5,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { EventEmitter } from 'node:events';
-import { CodexSession } from '../packages/runtime/src/codex.js';
+import { CodexSession, isolatedConfig } from '../packages/runtime/src/codex.js';
 import { Store } from '../packages/runtime/src/store.js';
 import { DragonService } from '../packages/runtime/src/service.js';
 class Fake extends EventEmitter {
   calls: { method: string; params: Record<string, unknown> }[] = [];
   writes: unknown[] = [];
   closed = false;
+  finalText = '';
+  onTurn?: () => void;
   constructor() {
     super();
     this.calls = [];
@@ -29,6 +31,15 @@ class Fake extends EventEmitter {
     if (method === 'thread/resume')
       return { thread: { id: params.threadId, status: { type: 'idle' } } };
     if (method === 'turn/start') {
+      this.onTurn?.();
+      this.emit('message', {
+        method: 'item/completed',
+        params: {
+          threadId: 'thread-1',
+          turnId: 'turn-1',
+          item: { type: 'agentMessage', text: this.finalText, phase: 'final_answer' },
+        },
+      });
       this.emit('message', {
         id: 80,
         method: 'item/tool/call',
@@ -70,6 +81,27 @@ test('连接尚未建立时暂停，不会在暂停后继续创建回合', async
   assert.ok(!rpc.calls.some((x) => x.method === 'turn/start'));
   assert.equal(rpc.closed, true);
 });
+test('保留 Code Mode 动态工具宿主，不开启 Shell 或额外工具', () => {
+  const config = isolatedConfig();
+  assert.equal(config['features.code_mode_host'], true);
+  assert.equal(config['features.code_mode'], true);
+  assert.equal(config['features.shell_tool'], false);
+  assert.equal(config['features.plugins'], false);
+});
+test('模型回合结束但没有浏览日记时失败，并保留最终解释', async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-no-output-'));
+  t.onTestFinished(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const service = new DragonService(new Store(dir)),
+    rpc = new Fake();
+  rpc.finalText = '工具环境返回 code-mode host is disabled，未阅读视频。';
+  const session = new CodexSession(service, async () => rpc);
+  service.saveConfig({ ...service.config(), codexPath: 'fake-codex' });
+  await assert.rejects(
+    session.run({ id: 'empty', type: 'browse', payload: {} }),
+    /code-mode host is disabled/,
+  );
+  await session.stop();
+});
 test('动态工具注册、禁用宿主 MCP；提前到达的完成事件不丢失；复用专属会话', async (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dragon-codex-'));
   t.onTestFinished(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -77,6 +109,14 @@ test('动态工具注册、禁用宿主 MCP；提前到达的完成事件不丢�
     rpc = new Fake(),
     session = new CodexSession(service, async () => rpc);
   service.saveConfig({ ...service.config(), codexPath: 'fake-codex' });
+  rpc.onTurn = () =>
+    service.diary({
+      id: 'job-1',
+      title: '测试日记',
+      publicText: '已完成',
+      privateText: '测试',
+      evidence: '模拟工具素材',
+    });
   const result = await session.run({
     id: 'job-1',
     type: 'browse',

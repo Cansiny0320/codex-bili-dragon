@@ -8,6 +8,10 @@ import { Store } from './store.js';
 import { DragonService, catalog } from './service.js';
 import { Daemon } from './daemon.js';
 import { createHttp } from './http.js';
+import { ensureRuntime, findRuntime, requestRuntime, stopRuntime } from './runtime.js';
+import { installPlugin } from './install.js';
+import { migrateData } from './migrate.js';
+import { ensureFfmpeg } from './ffmpeg.js';
 import {
   findCodex,
   connectCodex,
@@ -23,6 +27,39 @@ async function main() {
     return;
   }
   if (command === 'start') {
+    await ensureFfmpeg(dataRoot, { progress: (message) => console.error(message) });
+    const running = await ensureRuntime();
+    console.log(
+      JSON.stringify({
+        running: true,
+        version: running.version,
+        message: '本地后台已启动。请在 Codex 打开 B 站小白龙管理页。',
+      }),
+    );
+    return;
+  }
+  if (command === 'stop') {
+    console.log(JSON.stringify(await stopRuntime()));
+    return;
+  }
+  if (command === 'status') {
+    const running = await findRuntime();
+    console.log(JSON.stringify({ running: !!running, version: running?.version }));
+    return;
+  }
+  if (command === 'pause') {
+    const running = await findRuntime();
+    if (running) await requestRuntime(running, 'pause');
+    console.log(JSON.stringify({ paused: true }));
+    return;
+  }
+  if (command === 'migrate-data') {
+    if (!process.argv[3]) throw Error('请指定旧版数据目录');
+    console.log(JSON.stringify(migrateData(path.resolve(process.argv[3]), dataRoot)));
+    return;
+  }
+  if (command === 'serve') {
+    await ensureFfmpeg(dataRoot, { progress: (message) => console.error(message) });
     const service = new DragonService(new Store(dataRoot));
     const daemon = new Daemon(service).start();
     let web;
@@ -109,22 +146,8 @@ async function main() {
     return;
   }
   if (command === 'install') {
-    const codex = findCodex();
-    execFileSync(
-      codex,
-      [
-        'mcp',
-        'add',
-        'codex-bili-dragon',
-        '--env',
-        'BILI_DRAGON_DATA=' + dataRoot,
-        '--',
-        process.execPath,
-        path.join(root, 'dist/runtime/mcp.js'),
-      ],
-      { stdio: 'inherit', windowsHide: true },
-    );
-    console.log('MCP 已注册。重启或刷新 Codex 后可使用 dragon_* 工具；自主后台仍需 pnpm start。');
+    await ensureFfmpeg(dataRoot, { progress: (message) => console.error(message) });
+    console.log(JSON.stringify(installPlugin()));
     return;
   }
   if (command === 'tools') {
@@ -139,7 +162,7 @@ async function main() {
     return;
   }
   console.log(
-    'Codex Bili Dragon\n\n  pnpm start                       启动本地后台和管理页\n  pnpm doctor                  检查 Codex 登录与 ffmpeg\n  pnpm doctor -- --protocol     检查动态工具协议（不调用模型）\n  node dist/runtime/cli.js install      注册本地 MCP（修改 Codex 用户配置）\n  pnpm mcp                     启动 MCP stdio\n\n环境变量：BILI_DRAGON_DATA、BILI_DRAGON_CODEX、BILI_DRAGON_PORT',
+    'Codex Bili Dragon\n\n  node dist/runtime/cli.js install   安装 Codex 插件（使用预构建插件包）\n  node dist/runtime/cli.js start     启动共享后台\n  node dist/runtime/cli.js status    查看后台状态\n  node dist/runtime/cli.js pause     暂停活动\n  node dist/runtime/cli.js stop      停止后台\n  node dist/runtime/cli.js serve     前台运行网页管理页\n  node dist/runtime/cli.js doctor    检查 Codex 登录与 ffmpeg\n  node dist/runtime/cli.js migrate-data <旧目录>  复制旧数据，保留原文件\n\n环境变量：BILI_DRAGON_DATA、BILI_DRAGON_CODEX、BILI_DRAGON_PORT',
   );
 }
 main().catch((e) => {
